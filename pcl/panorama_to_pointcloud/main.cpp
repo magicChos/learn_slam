@@ -10,7 +10,7 @@ void write_ply(const std::string output_plyFile , std::vector<std::tuple<double 
 int main()
 {
     cout << "Hello World!" << endl;
-    std::string imageName = "/Users/han/Desktop/0166.jpg";
+    std::string imageName = "../0166.jpg";
     std::string savePlyName = "save.ply";
 
     auto start_time = std::chrono::steady_clock::now();
