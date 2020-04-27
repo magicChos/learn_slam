@@ -19,14 +19,14 @@ int main(int argc, char *argv[]){
     // 相机位姿
     std::vector<Eigen::Isometry3d> poses;
 
-    std::ifstream fin("/Users/han/Opencv_Project/pcl/拼接点云/pose.txt");
+    std::ifstream fin("../pose.txt");
     if(!fin){
         std::cerr << "打开pose文件失败" << std::endl;
         return 0;
     }
 
     for(int i = 0 ; i < 5 ; i++){
-        boost::format fmt("/Users/han/Opencv_Project/pcl/拼接点云/%s/%d.%s");
+        boost::format fmt("../%s/%d.%s");
 
         colorImgs.push_back(cv::imread( (fmt%"color"%(i+1)%"png").str() ));
         depthImgs.push_back(cv::imread( (fmt%"depth"%(i+1)%"pgm").str() , -1));
@@ -36,7 +36,9 @@ int main(int argc, char *argv[]){
             fin >> d;
         }
 
+        // 四元数
         Eigen::Quaterniond q( data[6], data[3], data[4], data[5] );
+        // 转旋转矩阵
         Eigen::Isometry3d T(q);
         T.pretranslate( Eigen::Vector3d( data[0], data[1], data[2] ));
         poses.push_back( T );
@@ -69,14 +71,20 @@ int main(int argc, char *argv[]){
             for ( int u=0; u<color.cols; u++ )
             {
                 unsigned int d = depth.ptr<unsigned short> ( v )[u]; // 深度值
-                if ( d==0 ) continue; // 为0表示没有测量到
+                if ( d==0 ) 
+                    continue; // 为0表示没有测量到
                 Eigen::Vector3d point; 
+
+                //  ||u||   | fx  0  cx|    |x|
+                // z||v|| = | 0  fy  cy| x  |y|
+                //  ||1||   | 0   0   1|    |z|
+                // (x,y,z)为空间点再相机坐标系下坐标
                 point[2] = double(d)/depthScale; 
                 point[0] = (u-cx)*point[2]/fx;
                 point[1] = (v-cy)*point[2]/fy; 
-                Eigen::Vector3d pointWorld = T*point;
 
-                // std::cout << "pointWorld: " << pointWorld << std::endl;
+                // T:表示相机坐标系到世界坐标系的变换
+                Eigen::Vector3d pointWorld = T*point;
                 
                 PointT p ;
                 p.x = pointWorld[0];
