@@ -58,6 +58,11 @@ int main()
     Eigen::Vector3d w(0 , 1, 2);
 
     std::cout << v.cross(w);
+
+    Eigen::Vector3d v_test;
+    std::cout << "-----: " <<  v_test(0,0) << std::endl;
+    std::cout << "-----: " <<  v_test(1,0) << std::endl;
+    std::cout << "-----: " <<  v_test(2,0) << std::endl;
     
     return 0;
 }
