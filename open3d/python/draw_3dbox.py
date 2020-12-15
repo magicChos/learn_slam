@@ -74,8 +74,8 @@ def vis_pointcloud(points_3d, save_point_cloud=None):
     orientdbbox = point_cloud.get_oriented_bounding_box()
     orientdbbox.color = (0, 1, 0)
 
-    o3d.visualization.draw_geometries(
-        [point_cloud, alignbbox, orientdbbox], width=600, height=600)
+    # o3d.visualization.draw_geometries(
+    #     [point_cloud, alignbbox, orientdbbox], width=600, height=600)
 
     if save_point_cloud != None:
         o3d.io.write_point_cloud(save_point_cloud, point_cloud)
@@ -239,13 +239,15 @@ def main():
     depth_lst = glob(args.depth + "/*.png")
     color_lst = glob(args.color + "/*.png")
 
+    
     for depth_name in tqdm(depth_lst):
         color_name = depth_name.replace('depth', 'color')
         if not os.path.exists(color_name):
             continue
 
         process_single_image(depth_name, color_name, camera_matrix)
-        cv2.waitKey(0)
+        if cv2.waitKey(100) & 0xFF == ord('q'):
+            break
 
     # color_name = "tof_data/color/00000_2020-12-10_14-31-03_172.png"
     # depth_name = "tof_data/depth/00000_2020-12-10_14-31-03_172.png"
@@ -333,7 +335,7 @@ def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix):
     # Flip it, otherwise the pointcloud will be upside down
     pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
     # 显示
-    o3d.visualization.draw_geometries([pcd])
+    # o3d.visualization.draw_geometries([pcd])
 
 
 if __name__ == '__main__':
