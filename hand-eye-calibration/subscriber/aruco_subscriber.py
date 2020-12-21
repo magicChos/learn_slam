@@ -24,21 +24,16 @@ import yaml
 #                                     [0 , -1 , 0 , 1.173] ,
 #                                     [0 , 0 , 0 , 1]])
 
+# base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
+#                                     [0, 1, 0, 0.156],
+#                                     [0, 0, 1, -1.457],
+#                                     [0, 0, 0, 1]])
+
+
 base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
                                     [0, 1, 0, 0.156],
-                                    [0, 0, 1, -1.173],
+                                    [0, 0, 1, -1.061],
                                     [0, 0, 0, 1]])
-
-
-# base_link_2_object_matrix = np.mat(
-#     [
-#         [1.0 , 0.0 , 0.0 , 0.0], 
-#         [0.0 , 0.0 , -1.0 , 0.0],
-#         [0.0 , 1.0 , 0.0 , 0.0],
-#         [0.0 , -0.156 , 1.173 , 1]
-#     ],dtype=np.float32
-# )
-
 
 object_2_base_link = base_link_2_object_matrix.I
 
@@ -61,7 +56,7 @@ class ArucoSub(object):
         R = {"tran": translation_vec, "quart": rotation_vec}
         self.queue.append(R)
 
-        if len(self.queue) < 10:
+        if len(self.queue) < 20:
             pass
         else:
             mean_translation_x = 0.0
@@ -81,13 +76,13 @@ class ArucoSub(object):
                 mean_rotation_z += t['quart'][2]
                 mean_rotation_w += t['quart'][3]
 
-            mean_translation_x /= 10
-            mean_translation_y /= 10
-            mean_translation_z /= 10
-            mean_rotation_x /= 10
-            mean_rotation_y /= 10
-            mean_rotation_z /= 10
-            mean_rotation_w /= 10
+            mean_translation_x /= 20
+            mean_translation_y /= 20
+            mean_translation_z /= 20
+            mean_rotation_x /= 20
+            mean_rotation_y /= 20
+            mean_rotation_z /= 20
+            mean_rotation_w /= 20
 
             mean_translation_x = -1.0 * mean_translation_x
 
