@@ -20,14 +20,26 @@ import yaml
 
 # base_link to object trans
 # base_link_2_object_matrix = np.mat([[-1 , 0 , 0 , 0] ,
-#                                     [0 , 0 , -1 , 0.156] ,
-#                                     [0 , 1 , 0 , -1.173] ,
+#                                     [0 , 0 , 1 , -0.156] ,
+#                                     [0 , -1 , 0 , 1.173] ,
 #                                     [0 , 0 , 0 , 1]])
 
 base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
                                     [0, 1, 0, 0.156],
                                     [0, 0, 1, -1.173],
                                     [0, 0, 0, 1]])
+
+
+# base_link_2_object_matrix = np.mat(
+#     [
+#         [1.0 , 0.0 , 0.0 , 0.0], 
+#         [0.0 , 0.0 , -1.0 , 0.0],
+#         [0.0 , 1.0 , 0.0 , 0.0],
+#         [0.0 , -0.156 , 1.173 , 1]
+#     ],dtype=np.float32
+# )
+
+
 object_2_base_link = base_link_2_object_matrix.I
 
 
@@ -69,8 +81,6 @@ class ArucoSub(object):
                 mean_rotation_z += t['quart'][2]
                 mean_rotation_w += t['quart'][3]
 
-            import pdb
-            pdb.set_trace()
             mean_translation_x /= 10
             mean_translation_y /= 10
             mean_translation_z /= 10
