@@ -18,6 +18,8 @@ from scipy.spatial.transform import Rotation
 import yaml
 
 
+N = 30
+
 # base_link to object trans
 # base_link_2_object_matrix = np.mat([[-1 , 0 , 0 , 0] ,
 #                                     [0 , 0 , 1 , -0.156] ,
@@ -25,17 +27,22 @@ import yaml
 #                                     [0 , 0 , 0 , 1]])
 
 # base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
-#                                     [0, 1, 0, 0.156],
+#                                     [0, 1, 0, 0.155],
 #                                     [0, 0, 1, -1.457],
 #                                     [0, 0, 0, 1]])
 
 
 base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
-                                    [0, 1, 0, 0.156],
+                                    [0, 1, 0, 0.154],
                                     [0, 0, 1, -1.061],
                                     [0, 0, 0, 1]])
 
-object_2_base_link = base_link_2_object_matrix.I
+# base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
+#                                     [0, 1, 0, 0.155],
+#                                     [0, 0, 1, -1.061],
+#                                     [0, 0, 0, 1]])
+
+# object_2_base_link = base_link_2_object_matrix.I
 
 
 class ArucoSub(object):
@@ -56,7 +63,7 @@ class ArucoSub(object):
         R = {"tran": translation_vec, "quart": rotation_vec}
         self.queue.append(R)
 
-        if len(self.queue) < 20:
+        if len(self.queue) < N:
             pass
         else:
             mean_translation_x = 0.0
@@ -76,13 +83,13 @@ class ArucoSub(object):
                 mean_rotation_z += t['quart'][2]
                 mean_rotation_w += t['quart'][3]
 
-            mean_translation_x /= 20
-            mean_translation_y /= 20
-            mean_translation_z /= 20
-            mean_rotation_x /= 20
-            mean_rotation_y /= 20
-            mean_rotation_z /= 20
-            mean_rotation_w /= 20
+            mean_translation_x /= N
+            mean_translation_y /= N
+            mean_translation_z /= N
+            mean_rotation_x /= N
+            mean_rotation_y /= N
+            mean_rotation_z /= N
+            mean_rotation_w /= N
 
             mean_translation_x = -1.0 * mean_translation_x
 
@@ -104,15 +111,17 @@ class ArucoSub(object):
             T[1, 3] = mean_translation_y
             T[2, 3] = mean_translation_z
 
-            # T = np.mat(T).I
+            T = np.mat(T).I
 
             print("T: ", T)
             print("*********************************")
             print("object 2 base: ")
-            print(object_2_base_link)
+            # print(object_2_base_link)
             print('---------------------------------')
 
-            print("camera to base-link trans: ", T @ object_2_base_link)
+            print("camera to base-link trans: ", base_link_2_object_matrix @ T)
+            
+            
             self.queue = []
 
 
