@@ -38,20 +38,16 @@ import yaml
 #                                     [0 , -1 , 0 , 1.173] ,
 #                                     [0 , 0 , 0 , 1]])
 
-base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
+# base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
+#                                     [0, 1, 0, 0.156],
+#                                     [0, 0, 1, -1.173],
+#                                     [0, 0, 0, 1]])
+
+
+base_link_2_object_matrix = np.mat([[0, 0, -1, 1.173],
+                                    [-1, 0, 0, 0],
                                     [0, 1, 0, 0.156],
-                                    [0, 0, 1, -1.173],
-                                    [0, 0, 0, 1]])
-
-
-# base_link_2_object_matrix = np.mat(
-#     [
-#         [1.0 , 0.0 , 0.0 , 0.0], 
-#         [0.0 , 0.0 , -1.0 , 0.0],
-#         [0.0 , 1.0 , 0.0 , 0.0], 
-#         [0.0 , -0.156 , 1.173 , 1]
-#     ],dtype=np.float32
-# )
+                                    [0, 0, 0, 1]] , dtype = np.float32)
 
 
 object_2_base_link = base_link_2_object_matrix.I
@@ -134,7 +130,7 @@ class ArucoSub(object):
             T[1, 3] = mean_translation_y
             T[2, 3] = mean_translation_z
 
-            # T = np.mat(T).I
+            T = np.mat(T).I
 
             print("T: ", T)
             print("*********************************")
@@ -142,11 +138,16 @@ class ArucoSub(object):
             print(object_2_base_link)
             print('---------------------------------')
 
-            print("camera to base-link trans: ", T @ object_2_base_link)
+            # print("camera to base-link trans: ", T @ object_2_base_link)
+            print("camera to base-link trans: " , base_link_2_object_matrix @ T)
             self.queue = []
 
 
 def main():
+    
+    
+    
+    
     rospy.init_node('arucoTransformNode')
     aruco_sub = ArucoSub('/aruco_single/transform')
     rospy.spin()
