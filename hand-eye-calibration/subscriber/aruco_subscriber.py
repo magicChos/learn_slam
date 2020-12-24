@@ -18,6 +18,20 @@ from scipy.spatial.transform import Rotation
 import yaml
 
 
+
+# base_link坐标系                          # patten object坐标系
+#           Z       X                          ------------>X
+#           ^     ^                          / | 
+#           |    *                          /  |  
+#           |  *                           /   |
+#   Y <-----^                             v    v
+#                                        Z     Y
+
+
+
+
+
+
 # base_link to object trans
 # base_link_2_object_matrix = np.mat([[-1 , 0 , 0 , 0] ,
 #                                     [0 , 0 , 1 , -0.156] ,
@@ -34,13 +48,24 @@ base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
 #     [
 #         [1.0 , 0.0 , 0.0 , 0.0], 
 #         [0.0 , 0.0 , -1.0 , 0.0],
-#         [0.0 , 1.0 , 0.0 , 0.0],
+#         [0.0 , 1.0 , 0.0 , 0.0], 
 #         [0.0 , -0.156 , 1.173 , 1]
 #     ],dtype=np.float32
 # )
 
 
 object_2_base_link = base_link_2_object_matrix.I
+
+
+def create_base_2_object(offset = (0 , 0 , 0)):
+    rot_mat = np.array([[0 , 0 , -1] , [-1 , 0 , 0] , [0 , -1 , 0]] , dtype=np.float32)
+    T = np.identity(4, dtype=float)
+    T[:3 , :3] = rot_mat
+    T[0 , 3] = offset[0]
+    T[1 , 3] = offset[1]
+    T[2 , 3] = offset[2]
+    
+    return T
 
 
 class ArucoSub(object):
