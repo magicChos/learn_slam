@@ -20,6 +20,16 @@ import yaml
 
 N = 30
 
+# base_link坐标系                          # patten object坐标系
+#           Z       X                          ------------>X
+#           ^     ^                          / | 
+#           |    *                          /  |  
+#           |  *                           /   |
+#   Y <-----^                             v    v
+#                                        Z     Y
+
+
+
 # base_link to object trans
 # base_link_2_object_matrix = np.mat([[-1 , 0 , 0 , 0] ,
 #                                     [0 , 0 , 1 , -0.156] ,
@@ -36,6 +46,15 @@ base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
                                     [0, 1, 0, 0.154],
                                     [0, 0, 1, -1.061],
                                     [0, 0, 0, 1]])
+#                                     [0, 1, 0, 0.156],
+#                                     [0, 0, 1, -1.173],
+#                                     [0, 0, 0, 1]])
+
+
+base_link_2_object_matrix = np.mat([[0, 0, -1, 1.173],
+                                    [-1, 0, 0, 0],
+                                    [0, 1, 0, 0.156],
+                                    [0, 0, 0, 1]] , dtype = np.float32)
 
 # base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
 #                                     [0, 1, 0, 0.155],
@@ -43,6 +62,17 @@ base_link_2_object_matrix = np.mat([[1, 0, 0, 0],
 #                                     [0, 0, 0, 1]])
 
 # object_2_base_link = base_link_2_object_matrix.I
+
+
+def create_base_2_object(offset = (0 , 0 , 0)):
+    rot_mat = np.array([[0 , 0 , -1] , [-1 , 0 , 0] , [0 , -1 , 0]] , dtype=np.float32)
+    T = np.identity(4, dtype=float)
+    T[:3 , :3] = rot_mat
+    T[0 , 3] = offset[0]
+    T[1 , 3] = offset[1]
+    T[2 , 3] = offset[2]
+    
+    return T
 
 
 class ArucoSub(object):
@@ -119,13 +149,18 @@ class ArucoSub(object):
             # print(object_2_base_link)
             print('---------------------------------')
 
-            print("camera to base-link trans: ", base_link_2_object_matrix @ T)
             
             
+            # print("camera to base-link trans: ", T @ object_2_base_link)
+            print("camera to base-link trans: " , base_link_2_object_matrix @ T)
             self.queue = []
 
 
 def main():
+    
+    
+    
+    
     rospy.init_node('arucoTransformNode')
     aruco_sub = ArucoSub('/aruco_single/transform')
     rospy.spin()
