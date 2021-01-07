@@ -34,7 +34,7 @@ def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, cam
 
     height, width = np.asarray(depth_img).shape
     rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
-        color_img, depth_img)
+        color_img, depth_img , convert_rgb_to_intensity=False)
 
     # 内参赋值
     fx, fy, cx, cy = cam_matrix[0, 0], cam_matrix[1,
@@ -44,20 +44,11 @@ def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, cam
 
     pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
         rgbd_image, intrinsic)
-
-    # Flip it, otherwise the pointcloud will be upside down
-    # pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-
+    
     if camera_2_base != None:
         pcd.transform(camera_2_base)
     pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
     return pcd
-
-    # save_point_cloud_name = depth_name.replace("png", "pcd")
-    # o3d.io.write_point_cloud(save_point_cloud_name, pcd)
-
-    # # 显示
-    # o3d.visualization.draw_geometries([pcd])
 
 
 def write_pcd(pcd, save_pcd_name):
@@ -105,10 +96,6 @@ def main():
     extrinsic_matrix = read_yaml(args.extrinsic)
     camera_to_base_matrix = extrinsic_matrix['camera_to_base']
 
-
-    print("camera_to_base_matrix: ", camera_to_base_matrix)
-    print("camera_matrix: ", camera_matrix)
-
     depth_lst = glob(args.depth + "/*.png")
     color_lst = glob(args.color + "/*.png")
     depth_lst.sort()
@@ -129,6 +116,7 @@ def main():
 
     geometry = o3d.geometry.PointCloud()
     geometry.points = pcd.points
+    geometry.colors = pcd.colors
     vis.add_geometry(geometry)
     vis.add_geometry(axis_pcd)
 
@@ -138,9 +126,9 @@ def main():
         if not os.path.exists(color_name):
             continue
         
-        
         tmp = create_pointcloud_from_depth_and_rgb(depth_name, color_name , camera_matrix , camera_to_base_matrix)
         geometry.points = tmp.points
+        geometry.colors = tmp.colors
 
         
         vis.update_geometry(geometry)
@@ -155,8 +143,6 @@ def main():
     
     vis.run()    
     vis.destroy_window()
-
-
 
 
 if __name__ == '__main__':
