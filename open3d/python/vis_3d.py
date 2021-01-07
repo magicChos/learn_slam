@@ -10,7 +10,6 @@
 @usage       :
 '''
 
-
 import open3d as o3d
 import numpy as np
 import cv2
@@ -19,9 +18,13 @@ import argparse
 from glob import glob
 from tqdm import tqdm
 import os
+import sys
+
+sys.path.append("yoloapi")
+from make_predict import YoloFastestModel
 
 root_dir = "/home/han/Desktop/tof_data"
-yolo_dir = "/home/han/data/project/yolo-fastest"
+current_dir = os.getcwd()
 
 def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, camera_2_base=None):
     '''
@@ -74,18 +77,19 @@ def parser_args():
                         default=f"{root_dir}/color")
     parser.add_argument('-d', '--depth', help='depth image dir',
                         default=f"{root_dir}/depth")
-    parser.add_argument("-cf", "--config_file", default=f"{yolo_dir}/cfg/yolo-fastest-xl.cfg",
+    parser.add_argument("-cf", "--config_file", default=f"{current_dir}/cfg/yolo-fastest-xl.cfg",
                         help="path to config file")
-    parser.add_argument("-df", "--data_file", default=f"{yolo_dir}/cfg/voc.data",
+    parser.add_argument("-df", "--data_file", default=f"{current_dir}/cfg/voc.data",
                         help="path to data file")
     parser.add_argument("-t", "--thresh", type=float, default=.6,
                         help="remove detections with lower confidence")
     parser.add_argument("-w", "--weight", help="weight file",
-                        default=f"{yolo_dir}/backup/yolo-fastest-xl_last.weights")
+                        default=f"{current_dir}/model_weight/yolo-fastest-xl_last.weights")
     parser.add_argument("-i", "--intrisic", help='camera intrinsic matrix',
                         default=f"{root_dir}/camera_param.yaml")
     parser.add_argument("-e", "--extrinsic", help="camera extrinsic matrix",
                         default=f"{root_dir}/calibration.yaml")
+    parser.add_argument("-p" , "--predict" , help="inference flag" , default=True)
 
     return parser.parse_args()
 
@@ -119,6 +123,10 @@ def main():
     geometry.colors = pcd.colors
     vis.add_geometry(geometry)
     vis.add_geometry(axis_pcd)
+    
+    model = None
+    if args.predict:
+        model = YoloFastestModel(args.config_file, args.data_file, args.weight)
 
     
     for depth_name in tqdm(depth_lst[1:]):
@@ -136,6 +144,9 @@ def main():
         vis.update_renderer()
         
         color_img = cv2.imread(color_name)
+        if model is not None:
+            color_img , _ = model.predict_cv(color_img)
+            
         cv2.imshow("color" , color_img)
         
         cv2.waitKey(50)
