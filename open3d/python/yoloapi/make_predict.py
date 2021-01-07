@@ -33,7 +33,7 @@ from tqdm import tqdm
 # from yoloapi.pascal_voc_io import PascalVocWriter , XML_EXT
 # from yoloapi.class_path import classes_lst as classes
 from prettytable import PrettyTable
-from utils import calcIOU, iou_process
+from utils_fun import calcIOU, iou_process
 # from yoloapi.utils import calcIOU , iou_process
 
 

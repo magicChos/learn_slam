@@ -50,7 +50,9 @@ def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, cam
     
     if camera_2_base != None:
         pcd.transform(camera_2_base)
-    pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    # pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    # pcd.transform([[0 , 0 , -1 , 0] , [0 , 1 , 0 , 0] , [1 , 0 , 0 , 0] ,[0 , 0 , 0 , 1]])
+    
     return pcd
 
 
@@ -89,7 +91,7 @@ def parser_args():
                         default=f"{root_dir}/camera_param.yaml")
     parser.add_argument("-e", "--extrinsic", help="camera extrinsic matrix",
                         default=f"{root_dir}/calibration.yaml")
-    parser.add_argument("-p" , "--predict" , help="inference flag" , default=True)
+    parser.add_argument("-p" , "--predict" , help="inference flag" , default=False)
 
     return parser.parse_args()
 
