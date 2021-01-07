@@ -20,6 +20,8 @@ from glob import glob
 from tqdm import tqdm
 import os
 
+root_dir = "/home/han/Desktop/tof_data"
+yolo_dir = "/home/han/data/project/yolo-fastest"
 
 def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, camera_2_base=None):
     '''
@@ -44,11 +46,11 @@ def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, cam
         rgbd_image, intrinsic)
 
     # Flip it, otherwise the pointcloud will be upside down
-    # pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
+    # pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
 
     if camera_2_base != None:
         pcd.transform(camera_2_base)
-
+    pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
     return pcd
 
     # save_point_cloud_name = depth_name.replace("png", "pcd")
@@ -59,9 +61,7 @@ def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, cam
 
 
 def write_pcd(pcd, save_pcd_name):
-    '''
-    保存点云数据
-    '''
+    """保存点云数据."""
     o3d.io.write_point_cloud(save_pcd_name, pcd)
 
 
@@ -80,21 +80,21 @@ def read_yaml_opencv(yml_file):
 def parser_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--color', help='color image dir',
-                        default="/home/han/data/project/Yolo-Fastest/2021-01-07-tof_data/color")
+                        default=f"{root_dir}/color")
     parser.add_argument('-d', '--depth', help='depth image dir',
-                        default="/home/han/data/project/Yolo-Fastest/2021-01-07-tof_data/depth")
-    parser.add_argument("-cf", "--config_file", default="/home/han/data/project/Yolo-Fastest/cfg/yolo-fastest-xl.cfg",
+                        default=f"{root_dir}/depth")
+    parser.add_argument("-cf", "--config_file", default=f"{yolo_dir}/cfg/yolo-fastest-xl.cfg",
                         help="path to config file")
-    parser.add_argument("-df", "--data_file", default="/home/han/data/project/Yolo-Fastest/cfg/voc.data",
+    parser.add_argument("-df", "--data_file", default=f"{yolo_dir}/cfg/voc.data",
                         help="path to data file")
     parser.add_argument("-t", "--thresh", type=float, default=.6,
                         help="remove detections with lower confidence")
     parser.add_argument("-w", "--weight", help="weight file",
-                        default="backup/yolo-fastest-xl_last.weights")
+                        default=f"{yolo_dir}/backup/yolo-fastest-xl_last.weights")
     parser.add_argument("-i", "--intrisic", help='camera intrinsic matrix',
-                        default="/home/han/data/project/Yolo-Fastest/2021-01-07-tof_data/camera_param.yaml")
+                        default=f"{root_dir}/camera_param.yaml")
     parser.add_argument("-e", "--extrinsic", help="camera extrinsic matrix",
-                        default="/home/han/data/project/Yolo-Fastest/2021-01-07-tof_data/calibration.yaml")
+                        default=f"{root_dir}/calibration.yaml")
 
     return parser.parse_args()
 
@@ -114,14 +114,13 @@ def main():
     depth_lst.sort()
     
     vis = o3d.visualization.Visualizer()
-    vis.create_window()
+    vis.create_window(width=640 , height=480)
     
     opt = vis.get_render_option()
     opt.background_color = np.asarray([0, 0, 0])
-    opt.point_size = 10
-    opt.show_coordinate_frame = True
+    opt.point_size = 5
+    opt.show_coordinate_frame = False
     
-    # pcd = o3d.io.read_point_cloud("/home/han/data/project/Yolo-Fastest/2021-01-07-tof_data/depth/00000_2021-01-07_16-04-33_331.pcd")
     first_depth_name = depth_lst[0]
     first_color_name = first_depth_name.replace('depth', 'color')
     
@@ -148,11 +147,11 @@ def main():
         vis.poll_events()
         vis.update_renderer()
         
-        cv2.waitKey(100)
+        color_img = cv2.imread(color_name)
+        cv2.imshow("color" , color_img)
         
-        # vis.clear_geometries()
+        cv2.waitKey(50)
         
-        # o3d.visualization.draw_geometries([pcd])
     
     vis.run()    
     vis.destroy_window()
