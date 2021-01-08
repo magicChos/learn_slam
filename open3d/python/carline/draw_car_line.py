@@ -93,9 +93,6 @@ class DrawCarLine(object):
         cv2.line(cv_img, (int(right_start_x), int(right_start_y)),
                  (int(right_end_x), int(right_end_y)), (0, 0, 255), 2)
 
-        assert self.left_car_pts.shape == self.right_car_pts.shape, print(
-            "left line pts must be same with right line pts")
-
         for i in range(self.left_car_pts.shape[0]):
             left_pt_x, left_pt_y = self.left_car_pts[i].tolist()[0]
             right_pt_x, right_pt_y = self.right_car_pts[i].tolist()[0]
