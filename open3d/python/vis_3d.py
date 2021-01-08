@@ -21,7 +21,7 @@ import os
 import sys
 
 from carline.draw_car_line import DrawCarLine
-from utils.yaml_reader import  read_yaml_cv
+from utils.yaml_reader import  read_yaml_cv , read_yaml
 
 sys.path.append("yoloapi")
 from make_predict import YoloFastestModel
@@ -64,10 +64,10 @@ def write_pcd(pcd, save_pcd_name):
     o3d.io.write_point_cloud(save_pcd_name, pcd)
 
 
-def read_yaml(yaml_file):
-    with open(yaml_file, "r") as f:
-        data = yaml.load(f)
-        return data
+# def read_yaml(yaml_file):
+#     with open(yaml_file, "r") as f:
+#         data = yaml.load(f)
+#         return data
 
 
 # def read_yaml_opencv(yml_file):
