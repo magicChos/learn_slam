@@ -24,14 +24,9 @@ import numpy as np
 # from yoloapi import darknet
 import darknet
 from darknet import bbox2points
-# from yoloapi.darknet import bbox2points
 from imutils.paths import list_images
 import shutil
 from tqdm import tqdm
-# from pascal_voc_io import PascalVocWriter, XML_EXT
-# from class_path import classes_lst as classes
-# from yoloapi.pascal_voc_io import PascalVocWriter , XML_EXT
-# from yoloapi.class_path import classes_lst as classes
 from prettytable import PrettyTable
 from utils_fun import calcIOU, iou_process
 # from yoloapi.utils import calcIOU , iou_process
@@ -97,8 +92,11 @@ class YoloFastestModel(object):
         if len(detections) > 0:
             detections = iou_process(detections)
 
-        ratio_val_h = img_h/height
-        ratio_val_w = img_w/width
+        ratio_val_h = float(img_h)/height
+        ratio_val_w = float(img_w)/width
+        
+        print("ratio_val_h: " , ratio_val_h)
+        print("ratio_val_w: " , ratio_val_w)
 
         if save_annotations:
             if len(detections) == 0:
@@ -159,8 +157,8 @@ class YoloFastestModel(object):
         if len(detections) > 0:
             detections = iou_process(detections)
 
-        ratio_val_h = img_h/height
-        ratio_val_w = img_w/width
+        ratio_val_h = float(img_h)/height
+        ratio_val_w = float(img_w)/width
 
         
         for label, confidence, bbox in detections:
@@ -193,14 +191,14 @@ class YoloFastestModel(object):
 
 def parser_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config_file", default=f"{exe_file_dir}/cfg/yolo-fastest-xl.cfg",
+    parser.add_argument("-c", "--config_file", default="{}/cfg/yolo-fastest-xl.cfg".format(exe_file_dir),
                         help="path to config file")
-    parser.add_argument("-d", "--data_file", default=f"{exe_file_dir}/cfg/voc.data",
+    parser.add_argument("-d", "--data_file", default="{}/cfg/voc.data".format(exe_file_dir),
                         help="path to data file")
     parser.add_argument("-t", "--thresh", type=float, default=.1,
                         help="remove detections with lower confidence")
     parser.add_argument("-w", "--weight", help="weight file",
-                        default=f"{exe_file_dir}/model_weight/yolo-fastest-xl_last.weights")
+                        default="{}/model_weight/yolo-fastest-xl_last.weights".format(exe_file_dir))
     parser.add_argument("-i", "--input", help="input image dir",
                         default="/home/han/Desktop/tof_data/color")
 
@@ -220,6 +218,7 @@ def main():
         key = cv2.waitKey(20)
         if key == ord('q') & 0xff:
             break 
+    
 
 
 if __name__ == '__main__':
