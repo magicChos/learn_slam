@@ -23,7 +23,7 @@ import sys
 sys.path.append("yoloapi")
 from make_predict import YoloFastestModel
 
-root_dir = "/home/han/Desktop/tof_data"
+root_dir = "/home/han/tof_data"
 current_dir = os.getcwd()
 
 def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, camera_2_base=None):
@@ -50,7 +50,7 @@ def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, cam
     
     if camera_2_base != None:
         pcd.transform(camera_2_base)
-    # pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
     # pcd.transform([[0 , 0 , -1 , 0] , [0 , 1 , 0 , 0] , [1 , 0 , 0 , 0] ,[0 , 0 , 0 , 1]])
     
     return pcd
@@ -91,7 +91,7 @@ def parser_args():
                         default=f"{root_dir}/camera_param.yaml")
     parser.add_argument("-e", "--extrinsic", help="camera extrinsic matrix",
                         default=f"{root_dir}/calibration.yaml")
-    parser.add_argument("-p" , "--predict" , help="inference flag" , default=False)
+    parser.add_argument("-p" , "--predict" , help="inference flag" , default=True)
 
     return parser.parse_args()
 
@@ -109,6 +109,9 @@ def main():
     vis = o3d.visualization.Visualizer()
     vis.create_window(width=640 , height=480)
     
+    # ctr = vis.get_view_control()
+    # ctr.set_lookat([0, 0, 0.3])
+    
     opt = vis.get_render_option()
     opt.background_color = np.asarray([0, 0, 0])
     opt.point_size = 5
@@ -117,7 +120,7 @@ def main():
     first_depth_name = depth_lst[0]
     first_color_name = first_depth_name.replace('depth', 'color')
     
-    axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5, origin=[0, 0, 0])
+    axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2, origin=[0, 0, 0])
     pcd = create_pointcloud_from_depth_and_rgb(first_depth_name, first_color_name , camera_matrix , camera_to_base_matrix)
 
     geometry = o3d.geometry.PointCloud()
