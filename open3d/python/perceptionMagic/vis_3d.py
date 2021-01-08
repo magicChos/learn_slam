@@ -26,7 +26,7 @@ from utils.yaml_reader import  read_yaml_cv , read_yaml
 sys.path.append("yoloapi")
 from make_predict import YoloFastestModel
 
-root_dir = "/home/han/tof_data"
+root_dir = "/home/han/data/project/yolo-fastest/tof_data"
 current_dir = os.getcwd()
 
 def create_pointcloud_from_depth_and_rgb(depth_name, color_name, cam_matrix, camera_2_base=None):
@@ -64,18 +64,6 @@ def write_pcd(pcd, save_pcd_name):
     o3d.io.write_point_cloud(save_pcd_name, pcd)
 
 
-# def read_yaml(yaml_file):
-#     with open(yaml_file, "r") as f:
-#         data = yaml.load(f)
-#         return data
-
-
-# def read_yaml_opencv(yml_file):
-#     fs = cv2.FileStorage(yml_file, cv2.FILE_STORAGE_READ)
-#     fn = fs.getNode("camera_matrix")
-#     return fn.mat()
-
-
 def parser_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--color', help='color image dir',
@@ -91,9 +79,9 @@ def parser_args():
     parser.add_argument("-w", "--weight", help="weight file",
                         default=f"{current_dir}/model_weight/yolo-fastest-xl_last.weights")
     parser.add_argument("-i", "--intrisic", help='camera intrinsic matrix',
-                        default=f"{root_dir}/camera_param.yaml")
+                        default="cfg/camera_param.yaml")
     parser.add_argument("-e", "--extrinsic", help="camera extrinsic matrix",
-                        default=f"{root_dir}/calibration.yaml")
+                        default="cfg/calibration.yaml")
     parser.add_argument("-p" , "--predict" , help="inference flag" , default=True)
 
     return parser.parse_args()
@@ -122,6 +110,8 @@ def main():
     opt.background_color = np.asarray([0, 0, 0])
     opt.point_size = 5
     opt.show_coordinate_frame = False
+    opt.point_show_normal = True
+    
     
     first_depth_name = depth_lst[0]
     first_color_name = first_depth_name.replace('depth', 'color')
@@ -131,6 +121,8 @@ def main():
     
     pcd = create_pointcloud_from_depth_and_rgb(first_depth_name, first_color_name , camera_matrix['camera_matrix'] , camera_to_base_matrix)
 
+    write_pcd(pcd , "save.pcd")
+    
     geometry = o3d.geometry.PointCloud()
     geometry.points = pcd.points
     geometry.colors = pcd.colors
@@ -147,9 +139,12 @@ def main():
         if not os.path.exists(color_name):
             continue
         
+        print("geometry points number: " , )
         tmp = create_pointcloud_from_depth_and_rgb(depth_name, color_name , camera_matrix['camera_matrix'] , camera_to_base_matrix)
         geometry.points = tmp.points
         geometry.colors = tmp.colors
+        
+        
 
         
         vis.update_geometry(geometry)

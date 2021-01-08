@@ -23,6 +23,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from utils.yaml_reader import read_yaml_cv
 from utils.geometry_utils import project_Camera_3d_to_image
 
+current_file_dir = os.path.dirname(os.path.abspath(__file__))
+exe_file_dir = os.path.abspath(os.path.join(current_file_dir , ".."))
 
 class DrawCarLine(object):
     def __init__(self, calib_info):
@@ -112,9 +114,9 @@ class DrawCarLine(object):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--input", help="input image dir",
-                        default="/home/han/tof_data/color")
+                        default="/home/han/data/project/yolo-fastest/tof_data/color")
     parser.add_argument("-c", "--calib_config",
-                        help="calibration file", default="/home/han/tof_data/camera_param.yaml")
+                        help="calibration file", default="{}/cfg/camera_param.yaml".format(exe_file_dir))
     parser.add_argument("-s", "--save", help='save dir', default="save_result")
     args = parser.parse_args()
 
