@@ -108,7 +108,7 @@ def main():
     
     opt = vis.get_render_option()
     opt.background_color = np.asarray([0, 0, 0])
-    opt.point_size = 5
+    opt.point_size = 2
     opt.show_coordinate_frame = False
     opt.point_show_normal = True
     
@@ -138,6 +138,12 @@ def main():
         color_name = depth_name.replace('depth', 'color')
         if not os.path.exists(color_name):
             continue
+        color_img = cv2.imread(color_name)
+        if model is not None:
+            color_img , _ = model.predict_cv(color_img)
+            
+        draw_car_line_object.drawline(color_img)
+        
         
         print("geometry points number: " , )
         tmp = create_pointcloud_from_depth_and_rgb(depth_name, color_name , camera_matrix['camera_matrix'] , camera_to_base_matrix)
@@ -145,17 +151,10 @@ def main():
         geometry.colors = tmp.colors
         
         
-
-        
         vis.update_geometry(geometry)
         vis.poll_events()
         vis.update_renderer()
         
-        color_img = cv2.imread(color_name)
-        if model is not None:
-            color_img , _ = model.predict_cv(color_img)
-            
-        draw_car_line_object.drawline(color_img)
             
         cv2.imshow("color" , color_img)
         
