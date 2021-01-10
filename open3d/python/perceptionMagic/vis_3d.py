@@ -23,11 +23,13 @@ import traceback
 
 from carline.draw_car_line import DrawCarLine
 from utils.yaml_reader import  read_yaml_cv , read_yaml
+from utils.cloud_filter import custom_filter
+from utils.visualier import display_inlier_outlier
 
 sys.path.append("yoloapi")
 from make_predict import YoloFastestModel
 
-root_dir = "/home/han/Desktop/sub_tof_data"
+root_dir = "/home/han/data/project/yolo-fastest/tof_data"
 current_dir = os.getcwd()
 
 def vis_pointcloud(points_3d, camera_2_base = None ,save_point_cloud=None):
@@ -187,6 +189,7 @@ def main():
         model = YoloFastestModel(args.config_file, args.data_file, args.weight)  
     
     for depth_name in tqdm(depth_lst):
+        print(depth_name)
         try:
             color_name = depth_name.replace('depth', 'color')
             if not os.path.exists(color_name):
@@ -213,7 +216,16 @@ def main():
                 
             draw_car_line_object.drawline(color_img)
             tmp = create_pointcloud_from_depth_and_rgb_cv(depth_img, color_img_RGB , camera_matrix['camera_matrix'] , camera_to_base_matrix)
-            draw_geometry.append(tmp)
+            
+            indices = custom_filter(tmp , [-0.3 , 0.3] , [0.3 , 2.0] , [0.05 , 0.3])
+            inlier_cloud = tmp.select_by_index(indices)
+            outlier_cloud = tmp.select_by_index(indices , invert=True)
+            outlier_cloud.paint_uniform_color([1, 0, 0])
+            # inlier_cloud.paint_uniform_color([0, 1, 0])
+            
+            # draw_geometry.append(tmp)
+            draw_geometry.append(inlier_cloud)
+            draw_geometry.append(outlier_cloud)
             draw_geometry.append(axis_pcd)
             
             cv2.imshow("color" , color_img)
