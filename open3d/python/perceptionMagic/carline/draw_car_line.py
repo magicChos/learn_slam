@@ -21,7 +21,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from utils.yaml_reader import read_yaml_cv
-from utils.geometry_utils import project_Camera_3d_to_image
+from utils.geometry_utils import project_Camera_3d_to_image , project_Camera_3d_to_image_cv
 
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
 exe_file_dir = os.path.abspath(os.path.join(current_file_dir , ".."))
@@ -32,10 +32,16 @@ class DrawCarLine(object):
         self.left_car_line = np.matrix(self.left_car_line, dtype=np.float32)
         self.right_car_line = np.matrix(self.right_car_line, dtype=np.float32)
         self.calibration_info = self.parse_calibrate_result(calib_info)
+        
         self.left_car_pts = project_Camera_3d_to_image(
             self.left_car_line, self.calibration_info)
         self.right_car_pts = project_Camera_3d_to_image(
             self.right_car_line, self.calibration_info)
+        
+        # self.left_car_pts = project_Camera_3d_to_image_cv(
+        #     self.left_car_line, self.calibration_info)
+        # self.right_car_pts = project_Camera_3d_to_image_cv(
+        #     self.right_car_line, self.calibration_info)
 
     def createCarline(self):
         '''
@@ -43,13 +49,13 @@ class DrawCarLine(object):
         '''
         left_car_line = []
         right_car_line = []
-        left_car_line.append([0.144, 0.1, 0.1])
-        right_car_line.append([-0.206, 0.1, 0.1])
+        left_car_line.append([-0.144, 0.04, 0.1])
+        right_car_line.append([0.206, 0.04, 0.1])
 
         for i in range(1, 5):
-            left_car_line.append([0.144, 0.1, 0.5 * i])
-            right_car_line.append([-0.206, 0.1, 0.5 * i])
-
+            left_car_line.append([-0.144, 0.04, 0.5 * i])
+            right_car_line.append([0.206, 0.04, 0.5 * i])
+                     
         return left_car_line, right_car_line
 
     def parse_calibrate_result(self, yaml_res):

@@ -19,7 +19,6 @@ from glob import glob
 from tqdm import tqdm
 import os
 import sys
-import traceback
 
 from carline.draw_car_line import DrawCarLine
 from utils.yaml_reader import  read_yaml_cv , read_yaml
@@ -27,7 +26,7 @@ from utils.yaml_reader import  read_yaml_cv , read_yaml
 sys.path.append("yoloapi")
 from make_predict import YoloFastestModel
 
-root_dir = "/home/han/Desktop/sub_tof_data"
+root_dir = "/home/han/data/project/yolo-fastest/tof_data"
 current_dir = os.getcwd()
 
 def vis_pointcloud(points_3d, camera_2_base = None ,save_point_cloud=None):
@@ -127,6 +126,7 @@ def create_pointcloud_from_depth_and_rgb_roi(depth_map, cam_matrix, detections ,
         h , w = np.mgrid[start_y : end_y , start_x : end_x]
         scale_depth_map = depth_map[start_y : end_y , start_x : end_x]/depth_scale
         
+
         x = (w-cx)*scale_depth_map/fx
         y = (h-cy)*scale_depth_map/fy
         
@@ -170,6 +170,7 @@ def parser_args():
 
 def main():
     args = parser_args()
+    # camera_matrix = read_yaml_opencv(args.intrisic)
     camera_matrix = read_yaml_cv(args.intrisic , ["camera_matrix", "dist_matrix", "extrinsic_matrix"])
     extrinsic_matrix = read_yaml(args.extrinsic)
     camera_to_base_matrix = extrinsic_matrix['camera_to_base']
@@ -179,49 +180,75 @@ def main():
     depth_lst.sort()
     
     draw_car_line_object = DrawCarLine(camera_matrix)
+    
+    vis = o3d.visualization.Visualizer()
+    vis.create_window(width=640 , height=480)
+    
+    opt = vis.get_render_option()
+    opt.background_color = np.asarray([0, 0, 0])
+    opt.point_size = 2
+    opt.show_coordinate_frame = False
+    opt.point_show_normal = True
+    
+    
+    first_depth_name = depth_lst[0]
+    first_color_name = first_depth_name.replace('depth', 'color')
+    
     axis_pcd = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2, origin=[0, 0, 0])
     axis_pcd.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    
+    first_depth_img = cv2.imread(first_depth_name , -1)
+    first_color_img = cv2.imread(first_color_name)
+    first_color_img_RGB = cv2.cvtColor(first_color_img , cv2.COLOR_BGR2RGB)
+
+    pcd = create_pointcloud_from_depth_and_rgb_cv(first_depth_img, first_color_img_RGB , camera_matrix['camera_matrix'] , camera_to_base_matrix)
+    
+    geometry = o3d.geometry.PointCloud()
+    geometry.points = pcd.points
+    geometry.colors = pcd.colors
+    
+
     model = None
-    
     if args.predict:
-        model = YoloFastestModel(args.config_file, args.data_file, args.weight)  
+        model = YoloFastestModel(args.config_file, args.data_file, args.weight)
+        first_color_img , detections = model.predict_cv(first_color_img)
     
-    for depth_name in tqdm(depth_lst):
-        try:
-            color_name = depth_name.replace('depth', 'color')
-            if not os.path.exists(color_name):
-                continue
-            color_img = cv2.imread(color_name)
-            depth_img = cv2.imread(depth_name , -1)
-            color_img_RGB = cv2.cvtColor(color_img , cv2.COLOR_BGR2RGB)
+    vis.add_geometry(geometry)
+    vis.add_geometry(axis_pcd)    
+
+    
+    for depth_name in tqdm(depth_lst[1:]):
+        color_name = depth_name.replace('depth', 'color')
+        if not os.path.exists(color_name):
+            continue
+        color_img = cv2.imread(color_name)
+        depth_img = cv2.imread(depth_name , -1)
+        color_img_RGB = cv2.cvtColor(color_img , cv2.COLOR_BGR2RGB)
+        
+        if model is not None:
+            color_img , detections = model.predict_cv(color_img)
+        draw_car_line_object.drawline(color_img)
+        
+        
+        print("geometry points number: " , )
+        tmp = create_pointcloud_from_depth_and_rgb_cv(depth_img, color_img_RGB , camera_matrix['camera_matrix'] , camera_to_base_matrix)
+        geometry.points = tmp.points
+        geometry.colors = tmp.colors
+        
+        
+        vis.update_geometry(geometry)
+        vis.poll_events()
+        vis.update_renderer()
+        
             
-            draw_geometry = []
-            
-            if model is not None:
-                color_img , detections = model.predict_cv(color_img)
-                
-                roi_pcds = create_pointcloud_from_depth_and_rgb_roi(depth_img , camera_matrix['camera_matrix'] , detections , flatten=True)
-                for roi_pcd in roi_pcds:
-                    roi_cloud = o3d.geometry.PointCloud()
-                    roi_cloud.points = o3d.utility.Vector3dVector(roi_pcd)
-                    roi_cloud.transform(camera_to_base_matrix)
-                    roi_cloud.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-                    
-                    alignbbox = roi_cloud.get_axis_aligned_bounding_box()
-                    alignbbox.color = (1, 0, 0)
-                    draw_geometry.append(alignbbox)
-                
-            draw_car_line_object.drawline(color_img)
-            tmp = create_pointcloud_from_depth_and_rgb_cv(depth_img, color_img_RGB , camera_matrix['camera_matrix'] , camera_to_base_matrix)
-            draw_geometry.append(tmp)
-            draw_geometry.append(axis_pcd)
-            
-            cv2.imshow("color" , color_img)
-            cv2.waitKey(100)
-            o3d.visualization.draw_geometries(draw_geometry , width=640, height=480)
-        except BaseException as e:
-            print("{} occur problem: {}".format(depth_name , e))
-            print(traceback.format_exc())
+        cv2.imshow("color" , color_img)
+        
+        cv2.waitKey(100)
+        
+    
+    vis.run()    
+    vis.destroy_window()
+
 
 if __name__ == '__main__':
     main()

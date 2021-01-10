@@ -29,13 +29,14 @@ def project_Camera_3d_to_image(camera_3d_pt, calibration_info):
 
     r = np.sqrt(np.power(a, 2) + np.power(b, 2))
 
-    ad = np.multiply(
-        a, (1 + np.multiply(K[0], np.power(r, 2)) + np.multiply(K[1], np.power(r, 4))))
-    bd = np.multiply(
-        b, (1 + np.multiply(K[0], np.power(r, 2)) + np.multiply(K[1], np.power(r, 4))))
+    # ad = np.multiply(
+    #     a, (1 + np.multiply(K[0], np.power(r, 2)) + np.multiply(K[1], np.power(r, 4))))
+    # bd = np.multiply(
+    #     b, (1 + np.multiply(K[0], np.power(r, 2)) + np.multiply(K[1], np.power(r, 4))))
 
-    pixel_x = (F[0] * ad + C[0])
-    pixel_y = (F[1] * bd + C[1])
+    pixel_x = (F[0] * a + C[0])
+    pixel_y = (F[1] * b + C[1])
+
     pixel_list = np.hstack((pixel_x, pixel_y))
 
     return pixel_list

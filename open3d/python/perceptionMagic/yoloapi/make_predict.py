@@ -57,11 +57,16 @@ class YoloFastestModel(object):
         
     
 
-    def convert_real_detections(self, detections_det, ratio_val_h=1.0, ratio_val_w=1.0):
+    def convert_real_detections(self, detections_det, ratio_val_h=1.0, ratio_val_w=1.0 , img_h = 640 , img_w = 480):
         detections_src = []
         for det in detections_det:
             cls, conf, bndbox = det
             left, top, right, bottom = bbox2points(bndbox)
+            
+            left = max(left * ratio_val_w , 0)
+            top = max(top * ratio_val_h , 0)
+            right = min(right * ratio_val_w , img_w - 1)
+            bottom = min(bottom * ratio_val_h , img_h - 1)
 
             bndbox = (left * ratio_val_w, top * ratio_val_h,
                       right * ratio_val_w, bottom * ratio_val_h)
@@ -135,7 +140,9 @@ class YoloFastestModel(object):
                             (255, 0, 0), 2)
 
         detections = self.convert_real_detections(
-            detections, ratio_val_h=ratio_val_h, ratio_val_w=ratio_val_w)
+            detections, ratio_val_h=ratio_val_h, ratio_val_w=ratio_val_w , img_h=img_h , img_w = img_w)
+        
+        
         return image, detections
     
     
@@ -173,7 +180,7 @@ class YoloFastestModel(object):
                             (255, 0, 0), 2)
 
         detections = self.convert_real_detections(
-            detections, ratio_val_h=ratio_val_h, ratio_val_w=ratio_val_w)
+            detections, ratio_val_h=ratio_val_h, ratio_val_w=ratio_val_w , img_h=img_h, img_w=img_w)
         return cv_img, detections
 
     def predict(self, image_name, thresh=0.6):
