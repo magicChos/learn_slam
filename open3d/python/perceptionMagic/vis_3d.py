@@ -29,7 +29,7 @@ from utils.visualier import display_inlier_outlier
 sys.path.append("yoloapi")
 from make_predict import YoloFastestModel
 
-root_dir = "/home/han/data/project/yolo-fastest/tof_data"
+root_dir = "/home/han/sub_tof_data"
 current_dir = os.getcwd()
 
 def vis_pointcloud(points_3d, camera_2_base = None ,save_point_cloud=None):
@@ -205,19 +205,28 @@ def main():
                 
                 roi_pcds = create_pointcloud_from_depth_and_rgb_roi(depth_img , camera_matrix['camera_matrix'] , detections , flatten=True)
                 for roi_pcd in roi_pcds:
+                    
                     roi_cloud = o3d.geometry.PointCloud()
                     roi_cloud.points = o3d.utility.Vector3dVector(roi_pcd)
                     roi_cloud.transform(camera_to_base_matrix)
                     roi_cloud.transform([[0, -1, 0, 0], [1, 0, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+                    print("before filter: " , roi_cloud)
+                    indices = custom_filter(roi_cloud , [-0.3 , 0.3] , [0.3 , 2.0] , [0.03 , 0.5])
+                    inlier_cloud = roi_cloud.select_by_index(indices)
                     
-                    alignbbox = roi_cloud.get_axis_aligned_bounding_box()
-                    alignbbox.color = (1, 0, 0)
+                    inlier_cloud , _ = inlier_cloud.remove_radius_outlier(10 , 0.005)
+                    
+                    
+                    print("after filter: " , inlier_cloud)
+                    
+                    alignbbox = inlier_cloud.get_axis_aligned_bounding_box()
+                    alignbbox.color = (0, 1, 0)
                     draw_geometry.append(alignbbox)
                 
             draw_car_line_object.drawline(color_img)
             tmp = create_pointcloud_from_depth_and_rgb_cv(depth_img, color_img_RGB , camera_matrix['camera_matrix'] , camera_to_base_matrix)
             
-            indices = custom_filter(tmp , [-0.3 , 0.3] , [0.3 , 2.0] , [0.05 , 0.3])
+            indices = custom_filter(tmp , [-0.3 , 0.3] , [0.3 , 2.0] , [0.03 , 1])
             inlier_cloud = tmp.select_by_index(indices)
             outlier_cloud = tmp.select_by_index(indices , invert=True)
             outlier_cloud.paint_uniform_color([1, 0, 0])
