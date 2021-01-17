@@ -25,6 +25,7 @@ from carline.draw_car_line import DrawCarLine
 from utils.yaml_reader import  read_yaml_cv , read_yaml
 from utils.cloud_filter import custom_filter
 from utils.visualier import display_inlier_outlier
+from utils.geometry_utils import createMap
 
 sys.path.append("yoloapi")
 from make_predict import YoloFastestModel
@@ -200,9 +201,11 @@ def main():
             
             draw_geometry = []
             
+            
+            
             if model is not None:
                 color_img , detections = model.predict_cv(color_img)
-                
+                roi_bboxes = []
                 roi_pcds = create_pointcloud_from_depth_and_rgb_roi(depth_img , camera_matrix['camera_matrix'] , detections , flatten=True)
                 for roi_pcd in roi_pcds:
                     
@@ -214,7 +217,7 @@ def main():
                     indices = custom_filter(roi_cloud , [-0.3 , 0.3] , [0.3 , 2.0] , [0.03 , 0.5])
                     inlier_cloud = roi_cloud.select_by_index(indices)
                     
-                    inlier_cloud , _ = inlier_cloud.remove_radius_outlier(10 , 0.005)
+                    inlier_cloud , _ = inlier_cloud.remove_radius_outlier(10 , 0.01)
                     
                     
                     print("after filter: " , inlier_cloud)
@@ -222,9 +225,25 @@ def main():
                     alignbbox = inlier_cloud.get_axis_aligned_bounding_box()
                     alignbbox.color = (0, 1, 0)
                     draw_geometry.append(alignbbox)
+                    
+                    max_bbox = alignbbox.get_max_bound().tolist()[:2]
+                    min_bbox = alignbbox.get_min_bound().tolist()[:2]
+                    
+                    roi_bboxes.append((min_bbox , max_bbox))
                 
             draw_car_line_object.drawline(color_img)
             tmp = create_pointcloud_from_depth_and_rgb_cv(depth_img, color_img_RGB , camera_matrix['camera_matrix'] , camera_to_base_matrix)
+            
+            # if len(roi_bboxes) > 0:
+            #     map_img = createMap(tmp , res=0.005 , bboxes = roi_bboxes)
+            #     cv2.imshow("map" , map_img)
+                
+            map_img = createMap(tmp , res=0.005 , bboxes = roi_bboxes)
+            cv2.imshow("map" , map_img)    
+            
+            
+            # save_pcd_name = os.path.basename(depth_name).replace("png" , "pcd")
+            # write_pcd(tmp , save_pcd_name)
             
             indices = custom_filter(tmp , [-0.3 , 0.3] , [0.3 , 2.0] , [0.03 , 1])
             inlier_cloud = tmp.select_by_index(indices)
@@ -240,6 +259,8 @@ def main():
             cv2.imshow("color" , color_img)
             cv2.waitKey(100)
             o3d.visualization.draw_geometries(draw_geometry , width=640, height=480)
+            # cv2.destroyAllWindows()
+            roi_bboxes = []
         except BaseException as e:
             print("{} occur problem: {}".format(depth_name , e))
             print(traceback.format_exc())

@@ -13,7 +13,7 @@ Copyright (c) 2020. All rights reserved.Created by hanshuo
 
 import numpy as np
 
-def custom_filter(pcd , x_range = [-1 , 1]  , y_range = [-1 , 1] , z_range = [1 , 1]):  
+def custom_filter(pcd , x_range = [-0.4 , 0.4]  , y_range = [0 , 1.5] , z_range = [0.003 , 0.5]):  
     xyz = np.asarray(pcd.points)
     x_points = xyz[:, 0]
     y_points = xyz[:, 1]

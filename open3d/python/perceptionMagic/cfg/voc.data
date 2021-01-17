@@ -1,5 +1,5 @@
 classes=5
 train=/workspace/project/Yolo-Fastest/scripts/train.txt
 valid=/workspace/project/Yolo-Fastest/scripts/test.txt
-names=/home/han/data/project/learn_slam/open3d/python/cfg/voc.names
+names=/home/han/data/project/learn_slam/open3d/python/perceptionMagic/cfg/voc.names
 backup=backup

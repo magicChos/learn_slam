@@ -94,8 +94,8 @@ class YoloFastestModel(object):
         detections = darknet.detect_image(
             net, cls_names, darknet_image, thresh=thresh)
 
-        if len(detections) > 0:
-            detections = iou_process(detections)
+        # if len(detections) > 0:
+        #     detections = iou_process(detections)
 
         ratio_val_h = float(img_h)/height
         ratio_val_w = float(img_w)/width
@@ -161,8 +161,8 @@ class YoloFastestModel(object):
         detections = darknet.detect_image(
             net, cls_names, darknet_image, thresh=thresh)
 
-        if len(detections) > 0:
-            detections = iou_process(detections)
+        # if len(detections) > 0:
+        #     detections = iou_process(detections)
 
         ratio_val_h = float(img_h)/height
         ratio_val_w = float(img_w)/width
