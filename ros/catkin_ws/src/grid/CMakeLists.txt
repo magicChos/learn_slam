@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+find_package(OpenCV 3 REQUIRED)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -134,6 +136,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(gridMap src/gridMap.cpp)
+add_executable(generateMap create_localmap.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -149,6 +152,8 @@ add_dependencies(gridMap ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_T
 target_link_libraries(gridMap
   ${catkin_LIBRARIES}
 )
+
+target_link_libraries(generateMap ${OpenCV_LIBS} ${catkin_LIBRARIES})
 
 #############
 ## Install ##
