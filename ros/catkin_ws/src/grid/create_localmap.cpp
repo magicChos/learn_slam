@@ -3,6 +3,42 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include <opencv2/opencv.hpp>
 
+bool convert2localmap(cv::Mat &input_img, const std::string frame_id, const double resolution, nav_msgs::OccupancyGrid &cost_map)
+{
+    if (input_img.empty())
+    {
+        std::cerr << "input image is empty!\n";
+        return false;
+    }
+
+    int height = input_img.rows;
+    int width = input_img.cols;
+
+    cost_map.header.frame_id = frame_id;
+    cost_map.header.stamp = ros::Time::now();
+
+    cost_map.info.resolution = resolution;
+    cost_map.info.width = width;
+    cost_map.info.height = height;
+
+    int data[height * width] = {-1};
+    for (int i = 0; i < height; ++i)
+    {
+        uchar *ptr = input_img.ptr<uchar>(i);
+        for (int j = 0; j < width; ++j)
+        {
+            if (ptr[j] != 0)
+            {
+                data[i * width + j] = 100;
+            }
+        }
+    }
+
+    std::vector<signed char> a(data, data + width * height);
+    cost_map.data = a;
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -14,42 +50,9 @@ int main(int argc, char *argv[])
     ros::Publisher pub = nh.advertise<nav_msgs::OccupancyGrid>("/gridMap", 1);
     nav_msgs::OccupancyGrid map;
 
-    cv::Mat img = cv::imread("/home/han/data/project/learn_slam/ros/catkin_ws/src/grid/localmap.png" , 0);
-    if (img.empty())
-    {
-        std::cerr << "read image failture!\n";
-        return -1;
-    }
+    cv::Mat img = cv::imread("/home/han/data/project/learn_slam/ros/catkin_ws/src/grid/localmap.png", 0);
 
-    int height = img.rows;
-    int width  = img.cols;
-
-
-    map.header.frame_id = "grid";
-    map.header.stamp = ros::Time::now();
-    map.info.resolution = 0.005; // float32
-    map.info.width = width;       // uint32
-    map.info.height = height;      // uint32
-
-    int p[map.info.width * map.info.height] = {-1}; // [0,100]
-
-    for (int i = 0 ; i < height ; ++i)
-    {   
-        uchar *ptr = img.ptr<uchar>(i);
-        for (int j = 0 ; j < width ; ++j)
-        {
-            if (ptr[j] != 0)
-            {
-                p[i * width + j] = 100;
-            }
-        }
-    }
-
-
-    // p[10] = 100;
-    // std::vector<signed char> a(p, p + 400);
-    std::vector<signed char> a(p , p + width * height);
-    map.data = a;
+    convert2localmap(img , "grid" , 0.005 , map);
 
     while (ros::ok())
     {
