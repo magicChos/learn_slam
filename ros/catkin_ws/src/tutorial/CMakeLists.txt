@@ -7,6 +7,8 @@ project(tutorial)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
+set(visualiztion_msgs_DIR /opt/ros/melodic/share/visualization_msgs/cmake)
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
@@ -14,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
-  visualiztion_msgs
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
