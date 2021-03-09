@@ -232,7 +232,7 @@ cv::Mat System::TrackStereo(const cv::Mat &imLeft, 		//左侧图像
     return Tcw;
 }
 
-//当输入图像 为RGBD时进行的追踪，参数就不在一一说明了
+//当输入图像为RGBD时进行的追踪，参数就不在一一说明了
 cv::Mat System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp)
 {
 	//判断输入数据类型是否合法
