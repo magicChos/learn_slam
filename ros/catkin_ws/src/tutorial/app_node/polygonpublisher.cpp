@@ -22,51 +22,54 @@ int main(int argc, char **argv)
     // 节点句柄
     ros::NodeHandle nh;
 
-    // 发布消息 话题名字 队列大小
-    ros::Publisher pub = nh.advertise<geometry_msgs::PolygonStamped>("polygonpublisher", 1);
+    // // 发布消息 话题名字 队列大小
+    // ros::Publisher pub = nh.advertise<geometry_msgs::PolygonStamped>("polygonpublisher", 1);
 
-    // 定义多边形对象
-    geometry_msgs::PolygonStamped myPolygon;
+    // // 定义多边形对象
+    // geometry_msgs::PolygonStamped myPolygon;
 
-    // 多边形数据
-    geometry_msgs::Point32 point;
+    // // 多边形数据
+    // geometry_msgs::Point32 point;
 
-    point.x = -10;
-    point.y = -10;
-    point.z = 0;
+    // point.x = -10;
+    // point.y = -10;
+    // point.z = 0;
 
-    myPolygon.polygon.points.push_back(point);
+    // myPolygon.polygon.points.push_back(point);
 
-    point.x = 10;
-    point.y = -10;
-    point.z = 0;
+    // point.x = 10;
+    // point.y = -10;
+    // point.z = 0;
 
-    myPolygon.polygon.points.push_back(point);
+    // myPolygon.polygon.points.push_back(point);
 
-    point.x = 10;
-    point.y = 10;
-    point.z = 0;
+    // point.x = 10;
+    // point.y = 10;
+    // point.z = 0;
 
-    myPolygon.polygon.points.push_back(point);
+    // myPolygon.polygon.points.push_back(point);
 
-    point.x = -10;
-    point.y = 10;
-    point.z = 0;
+    // point.x = -10;
+    // point.y = 10;
+    // point.z = 0;
 
-    myPolygon.polygon.points.push_back(point);
+    // myPolygon.polygon.points.push_back(point);
 
-    // frame id
-    myPolygon.header.frame_id = "map";
+    // // frame id
+    // myPolygon.header.frame_id = "map";
 
-    // 消息发布频率
-    ros::Rate loop_rate(1);
+    // // 消息发布频率
+    // ros::Rate loop_rate(1);
 
-    while (ros::ok())
-    {
-        // 广播
-        pub.publish(myPolygon);
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
+    // while (ros::ok())
+    // {
+    //     // 广播
+    //     pub.publish(myPolygon);
+    //     ros::spinOnce();
+    //     loop_rate.sleep();
+    // }
+
+    ros::Time begin = ros::Time::now();
+    std::cout << begin << std::endl;
     return 0;
 }
