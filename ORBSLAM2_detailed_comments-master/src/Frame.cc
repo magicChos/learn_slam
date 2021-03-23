@@ -651,6 +651,7 @@ namespace ORB_SLAM2
     {
         // 存储搜索结果的vector
         vector<size_t> vIndices;
+        // N: 关键点数量
         vIndices.reserve(N);
 
         // Step 1 计算半径为r圆左右上下边界所在的网格列和行的id
