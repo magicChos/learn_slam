@@ -59,4 +59,3 @@ bool TFListener::TransformToMatrix(const tf::StampedTransform &transform, Eigen:
 
     return true;
 }
-}

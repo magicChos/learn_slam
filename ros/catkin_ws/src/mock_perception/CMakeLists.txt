@@ -169,9 +169,14 @@ add_definitions(${PCL_DEFINITIONS})
 set(PERCEPTION_SRC
     src/subscriber/cloud_subscriber.cpp
     src/subscriber/color_subscriber.cpp
+    src/subscriber/map_subscriber.cpp
     src/tf_listener/tf_lisener.cpp
-    app/mock_perception_node.cpp
+    src/module/base_module.cpp
+    src/module/perception_module.cpp
+    # app/mock_perception_node.cpp
+    app/main.cpp
     src/utils/data_converter.cpp
+    src/system.cpp
     )
 
 # SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin")
