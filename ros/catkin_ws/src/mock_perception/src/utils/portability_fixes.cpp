@@ -6,7 +6,8 @@
 //   License:   BSD License, see ../docs/license.html
 
 ////////////////////////////////////////////////////////////////////////////////
-#include "./portability_fixes.hpp"
+// #include "./portability_fixes.hpp"
+#include "utils/portability_fixes.hpp"
 
 #ifdef MSWINDOWS
 #include "windows.h"

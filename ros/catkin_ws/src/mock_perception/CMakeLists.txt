@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(mock_perception)
+add_definitions(-std=c++14)
 
 set(CMAKE_BUILD_TYPE Debug)
+add_definitions("-Wall")
+
+FIND_PACKAGE( OpenMP REQUIRED)
+if(OPENMP_FOUND)
+    message("OPENMP FOUND")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -21,7 +31,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
 )
 find_package(OpenCV 3 REQUIRED)
-find_package(Eigen3)
+find_package(Eigen3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 
 find_package(OpenMP)
@@ -29,6 +39,21 @@ find_package(PCL REQUIRED COMPONENTS common)
 
 set(ACE_THIRDPARTY_PATH ${CMAKE_CURRENT_LIST_DIR}/thirdparty)
 include_directories(${ACE_THIRDPARTY_PATH}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ncnn_lib/include/ncnn)
+
+if(NOT RK3399)
+    message("build for flatform x64_linux")
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ncnn_lib/lib/x64_linux)
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/open3d/lib/x64_linux)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ncnn_lib/include/platform/x64_linux)
+else()
+    message("build for flatform aarch64")
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ncnn_lib/lib/aarch64)
+    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/open3d/lib/aarch64)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ncnn_lib/include/platform/aarch64)
+endif()
+
+# target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC "${EIGEN3_INCLUDE_DIR}")
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -179,9 +204,19 @@ set(PERCEPTION_SRC
     src/tf_listener/tf_lisener.cpp
     src/module/base_module.cpp
     src/module/perception_module.cpp
-    # app/mock_perception_node.cpp
     app/main.cpp
     src/utils/data_converter.cpp
+    src/utils/debug_utils.cpp
+    src/utils/file_system.cpp
+    # src/utils/INIReader.cpp
+    src/common/ini.cpp
+    src/common/ini_reader.cpp
+    src/common/log.cpp
+    src/obstacle_detection/obstacle_detection.cpp
+    src/utils/portability_fixes.cpp
+    src/utils/wildcard.cpp
+    src/object_detecion/object_detection.cpp
+    src/object_detecion/object_types.cpp
     src/system.cpp
     )
 
@@ -192,7 +227,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 
 add_executable(mock_perception ${PERCEPTION_SRC})
-target_link_libraries(mock_perception ${catkin_LIBRARIES} ${OpenCV_LIBS} pthread  ${PCL_LIBRARIES})
+target_link_libraries(mock_perception ${catkin_LIBRARIES} ${OpenCV_LIBS} pthread ncnn ${PCL_LIBRARIES})
 
 #############
 ## Install ##

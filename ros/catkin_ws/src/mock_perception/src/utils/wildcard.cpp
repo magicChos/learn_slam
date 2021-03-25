@@ -11,7 +11,7 @@
 //   Given that all shells perform wildcard matching, why don't the library writers put it in the C run-time????????
 
 ////////////////////////////////////////////////////////////////////////////////
-#include "./wildcard.hpp"
+#include "utils/wildcard.hpp"
 
 namespace stlplus
 {

@@ -8,7 +8,8 @@
 #include <time.h>
 #include <ctime>
 
-#include "ace/common/log.h"
+// #include "ace/common/log.h"
+#include "common/log.h"
 
 namespace ace {
 namespace common {

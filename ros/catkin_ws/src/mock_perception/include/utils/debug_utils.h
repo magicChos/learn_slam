@@ -17,5 +17,3 @@
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 
 int64_t GetTimeStamp();
-
-nav_messages::FusionOccupancyGrid FusionOccupancyGrid_clone(const nav_messages::FusionOccupancyGrid &map);

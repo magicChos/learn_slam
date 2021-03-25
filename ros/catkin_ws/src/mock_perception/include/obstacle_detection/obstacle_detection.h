@@ -7,7 +7,8 @@
 #include "sensor/camera.h"
 #include <Eigen/Core>
 #include <cstdint>
-#include <glog/logging.h>
+// #include <glog/logging.h>
+#include "common/log.h"
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "utils/file_system.hpp"
@@ -40,7 +41,9 @@ namespace ace
         std::string model_path = current_dir + "../weights/object_detection";
         if (sric_detection_init(model_path) < 0)
         {
-          LOG(ERROR) << "Object detection initialization failed\n";
+          // LOG(ERROR) << "Object detection initialization failed\n";
+          LogError("Object detection initialization failed");
+
         }
       }
       ~ObjectDetectionWrapper() { sric_detection_release(); }
@@ -71,7 +74,7 @@ namespace ace
           : camera(camera), option(option)
       {
         m_timer = std::make_shared<Timer>();
-        cameraParamsInit();
+        // cameraParamsInit();
       };
 
       ObstacleDetector(const ObstacleDetectOption &option);

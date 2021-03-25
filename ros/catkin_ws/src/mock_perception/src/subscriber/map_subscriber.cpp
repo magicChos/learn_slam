@@ -6,15 +6,6 @@ MapSubscriber::MapSubscriber(ros::NodeHandle &nh, const std::string &topic_name,
     subscriber_ = nh_.subscribe(topic_name, buff_size, &MapSubscriber::msg_callback, this);
 }
 
-// bool MapSubscriber::parse_data(nav_msgs::OccupancyGrid &slam_map)
-// {
-//     if (m_receive_slammap)
-//     {
-//         slam_map = new_map_data;
-//     }
-
-//     return m_receive_slammap;
-// }
 
 bool MapSubscriber::parse_data(nav_messages::FusionOccupancyGrid &slam_map)
 {

@@ -1,4 +1,4 @@
-#include "debug_utils.h"
+#include "utils/debug_utils.h"
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv)
 {
@@ -50,25 +50,3 @@ int64_t GetTimeStamp()
     return timeNow.count();
 }
 
-nav_messages::FusionOccupancyGrid FusionOccupancyGrid_clone(const nav_messages::FusionOccupancyGrid &map)
-{
-    nav_messages::FusionOccupancyGrid temp;
-    temp.info.resolution = map.info.resolution;
-    temp.info.height = map.info.height;
-    temp.info.width = map.info.width;
-    temp.data_size = map.data.size();
-    temp.data.resize(temp.data_size);
-    temp.data = map.data;
-    temp.floor_type = map.floor_type;
-    temp.obj_size = map.obj_size;
-
-    temp.info.origin.position.x = map.info.origin.position.x;
-    temp.info.origin.position.y = map.info.origin.position.y;
-    temp.info.origin.position.z = map.info.origin.position.z;
-    temp.info.origin.orientation.w = map.info.origin.orientation.w;
-    temp.info.origin.orientation.x = map.info.origin.orientation.x;
-    temp.info.origin.orientation.y = map.info.origin.orientation.y;
-    temp.info.origin.orientation.z = map.info.origin.orientation.z;
-
-    return temp;
-}
