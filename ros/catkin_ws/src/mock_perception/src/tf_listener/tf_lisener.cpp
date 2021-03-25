@@ -34,7 +34,7 @@ bool TFListener::LookupData(geometry_messages::Pose2D &robot_pose)
         robot_pose.x = transform.getOrigin().getX();
         robot_pose.y = transform.getOrigin().getY();
         robot_pose.theta = yaw;
-        robot_pose.timestamp = transform.stamp_.toSec();
+        robot_pose.timestamp = transform.stamp_.toNSec() * 0.000001;
 
         return true;
     }

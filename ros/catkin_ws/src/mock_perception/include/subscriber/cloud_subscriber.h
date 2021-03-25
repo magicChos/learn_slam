@@ -19,16 +19,17 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include "sensor_data/cloud_data.hpp"
 
 class CloudSubscriber
 {
 public:
-    using Cloud = pcl::PointCloud<pcl::PointXYZ>;
+    // using Cloud = pcl::PointCloud<pcl::PointXYZ>;
 
     CloudSubscriber(ros::NodeHandle &nh, const std::string &topic_name, size_t buff_size);
     CloudSubscriber() = default;
 
-    void parse_data(std::deque<Cloud> &deque_cloud_data);
+    void parse_data(std::deque<CloudData> &deque_cloud_data);
 
 private:
     void msg_callback(const sensor_msgs::PointCloud::ConstPtr &cloud_msg_ptr);
@@ -36,6 +37,6 @@ private:
 private:
     ros::NodeHandle nh_;
     ros::Subscriber subscriber_;
-    std::deque<Cloud> new_cloud_data_;
+    std::deque<CloudData> new_cloud_data_;
     std::mutex buff_mutex_;
 };

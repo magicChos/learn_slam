@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(mock_perception)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -24,6 +26,9 @@ INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 
 find_package(OpenMP)
 find_package(PCL REQUIRED COMPONENTS common)
+
+set(ACE_THIRDPARTY_PATH ${CMAKE_CURRENT_LIST_DIR}/thirdparty)
+include_directories(${ACE_THIRDPARTY_PATH}/include)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -130,6 +135,7 @@ find_package(PCL REQUIRED COMPONENTS common)
 include_directories(
   ${catkin_INCLUDE_DIRS}
   include
+  include/lcm_cpp
 )
 
 include_directories(${PCL_INCLUDE_DIRS} ${OpenCV_DIR})

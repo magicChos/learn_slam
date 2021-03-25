@@ -8,6 +8,7 @@
 #include "lcm_cpp/geometry_messages/Pose2D.hpp"
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
+#include <deque>
 
 class TFListener
 {
@@ -24,7 +25,6 @@ private:
 private:
     ros::NodeHandle nh_;
     tf::TransformListener listener_;
-    // tf2_ros::Buffer tf_buffer_;
     std::string base_frame_id_;
     std::string child_frame_id_;
 };

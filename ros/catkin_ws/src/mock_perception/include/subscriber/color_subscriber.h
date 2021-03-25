@@ -16,6 +16,7 @@
 #include "sensor_msgs/image_encodings.h"
 #include <mutex>
 #include <opencv2/opencv.hpp>
+#include "sensor_data/image_data.hpp"
 
 class ColorSubscriber
 {
@@ -23,7 +24,7 @@ public:
     ColorSubscriber(ros::NodeHandle &nh, const std::string &topic_name, size_t buff_size);
     ColorSubscriber() = default;
 
-    void parse_data(std::deque<cv::Mat> &deque_color_data);
+    void parse_data(std::deque<ImageData> &deque_color_data);
 
 private:
     void msg_callback(const sensor_msgs::Image::ConstPtr &color_msg_ptr);
@@ -31,6 +32,6 @@ private:
 private:
     ros::NodeHandle nh_;
     ros::Subscriber subscriber_;
-    std::deque<cv::Mat> new_color_data_;
+    std::deque<ImageData> new_color_data_;
     std::mutex buff_mutex_;
 };

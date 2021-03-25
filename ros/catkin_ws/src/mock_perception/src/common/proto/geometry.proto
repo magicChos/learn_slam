@@ -1,0 +1,108 @@
+//
+// Created by dyq on 2020/10/23.
+//
+
+syntax = "proto3";
+
+package ace.common.proto;
+
+// A general 2D point
+message Point2D
+{
+  double x = 1;
+  double y = 2;
+}
+
+// A general 2D pose
+message Pose2D
+{
+  double x = 1;
+  double y = 2;
+  double theta = 3;
+  uint32 clean_flag = 4;
+}
+
+message Vector2d {
+  double x = 1;
+  double y = 2;
+}
+
+message Vector2f
+{
+  float x = 1;
+  float y = 2;
+}
+
+message Vector3d
+{
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Vector3f
+{
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Vector4f
+{
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float t = 4;
+}
+
+message Quaternion
+{
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  double w = 4;
+}
+
+message Linear
+{
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Angular
+{
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Twist
+{
+  Linear  linear = 1;
+  Angular angular = 2;
+}
+
+message Point
+{
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Pose
+{
+  Point position = 1;
+  Quaternion orientation = 2;
+}
+
+message Path
+{
+  repeated Pose path= 1;
+}
+
+message Odometry
+{
+    Pose pose = 1;
+    Twist twist = 2;
+}

@@ -15,6 +15,7 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <mutex>
 #include <opencv2/opencv.hpp>
+#include "lcm_cpp/nav_messages/FusionOccupancyGrid.hpp"
 
 class MapSubscriber
 {
@@ -24,15 +25,29 @@ public:
 
     void parse_data(std::deque<nav_msgs::OccupancyGrid> &deque_map_data);
 
+    // bool parse_data(nav_msgs::OccupancyGrid &slam_map);
+
+    bool parse_data(nav_messages::FusionOccupancyGrid &slam_map);
+
 private:
     void msg_callback(const nav_msgs::OccupancyGridConstPtr &msg);
 
 private:
     ros::NodeHandle nh_;
     ros::Subscriber subscriber_;
-    std::deque<nav_msgs::OccupancyGrid> new_map_data_;
+    std::deque<nav_msgs::OccupancyGrid> new_map_buffer;
+    // nav_msgs::OccupancyGrid new_map_data;
+    // nav_msgs::OccupancyGridConstPtr new_map_data;
+
+    nav_messages::FusionOccupancyGrid new_map_data;
+
     std::mutex buff_mutex_;
+    bool m_receive_slammap = false;
 };
+
+
+
+
 
 
 
