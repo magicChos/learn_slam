@@ -19,9 +19,14 @@ void CloudSubscriber::parse_data(std::deque<CloudData> &deque_cloud_data)
 
 void CloudSubscriber::msg_callback(const sensor_msgs::PointCloud::ConstPtr &cloud_msg_ptr)
 {
+    if (cloud_msg_ptr == nullptr)
+    {
+        return;
+    }
     std::lock_guard<std::mutex> guard(buff_mutex_);
     try
     {
+        std::cout << "sub color image" << std::endl;
         CloudData::CLOUD_PTR pcl_cloud_msg(new CloudData::CLOUD);
 
         sensor_msgs::PointCloud2 point_cloud;

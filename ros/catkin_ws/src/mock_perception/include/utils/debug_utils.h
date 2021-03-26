@@ -1,3 +1,4 @@
+
 /************************************************************************************************
 @filename    :debug_utils.h
 @brief       :
@@ -16,9 +17,16 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Eigen>
 #include <opencv2/core/eigen.hpp>
+#include "sensor_data/cloud_data.hpp"
+#include "sensor_data/image_data.hpp"
+#include "geometry_messages/Pose2D.hpp"
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 
 int64_t GetTimeStamp();
 
 Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R);
+
+void printTimeStamp(const ImageData &image_data , const CloudData &cloud_data , const geometry_messages::Pose2D &robot_pose);
+
+
