@@ -1,6 +1,8 @@
 #include "system.h"
 #include "utils/data_converter.hpp"
 #include <stdio.h>
+#include "utils/debug_utils.h"
+
 MockSystem::MockSystem(std::shared_ptr<BaseModule> module)
 {
     std::cout << "step into mock system" << std::endl;
@@ -49,6 +51,8 @@ void MockSystem::handleRobotPose()
     ros::Rate rate(300);
     while (ros::ok())
     {
+        int64_t current_timestamp = GetTimeStamp();
+        std::cout << "current_timestamp: " << current_timestamp << std::endl;
         usleep(1000);
         geometry_messages::Pose2D robot_pose;
         if (m_listener->LookupData(robot_pose))
