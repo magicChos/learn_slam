@@ -9,7 +9,8 @@ PerceptionModule::PerceptionModule()
 
     init_params();
 
-    m_obstacle_detector = std::make_shared<ace::perception::ObstacleDetector>(m_option);
+    m_camera = std::make_shared<ace::sensor::VirtualCamera>();
+    m_obstacle_detector = std::make_shared<ace::perception::ObstacleDetector>(m_camera.get() , m_option);
 }
 
 bool PerceptionModule::init_params()
@@ -49,6 +50,8 @@ bool PerceptionModule::init_params()
 
         m_base_2_map_matrix = Eigen::Matrix4d::Identity();
     }
+
+    return true;
 }
 
 bool PerceptionModule::run()
@@ -101,8 +104,6 @@ bool PerceptionModule::UpdateMap()
                 continue;
             }
             auto &local_map_value = m_local_map.at<uchar>(u, v);
-            auto &global_map_value = m_global_map.at<uchar>(cgv, cgu);
-
             if (local_map_value == 127)
             {
                 continue;
@@ -120,7 +121,7 @@ bool PerceptionModule::UpdateMap()
 
 bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &occupacy_grid)
 {
-    if (m_occupancy_grid.info.width == occupacy_grid.info.width && m_occupancy_grid.info.height == occupacy_grid.info.height && m_occupancy_grid.data.size() == occupacy_grid.data.size() || occupacy_grid.data.size() == 0)
+    if (m_occupancy_grid.data.size() == occupacy_grid.data.size() || occupacy_grid.data.size() == 0)
     {
     }
     else

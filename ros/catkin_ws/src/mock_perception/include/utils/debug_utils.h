@@ -13,7 +13,12 @@
 #include <opencv2/opencv.hpp>
 #include "nav_messages/FusionOccupancyGrid.hpp"
 #include <chrono>
+#include <opencv2/opencv.hpp>
+#include <Eigen/Eigen>
+#include <opencv2/core/eigen.hpp>
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 
 int64_t GetTimeStamp();
+
+Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R);

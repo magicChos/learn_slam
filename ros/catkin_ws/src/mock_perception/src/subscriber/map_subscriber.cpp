@@ -34,7 +34,7 @@ void MapSubscriber::msg_callback(const nav_msgs::OccupancyGridConstPtr &msg)
         return;
     }
 
-    if (msg->info.width == new_map_data.info.width && msg->info.height == new_map_data.info.height && new_map_data.data.size() == msg->data.size() || msg->data.size() == 0)
+    if (new_map_data.data.size() == msg->data.size() || msg->data.size() == 0)
     {
         return;
     }

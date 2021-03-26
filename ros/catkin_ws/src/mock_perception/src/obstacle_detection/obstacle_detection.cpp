@@ -2,6 +2,8 @@
 
 #include "obstacle_detection/obstacle_detection.h"
 #include "common/log.h"
+#include <Eigen/Core>
+#include <Eigen/Eigen>
 
 namespace ace
 {
@@ -9,10 +11,13 @@ namespace ace
   {
     static const char *sric_names[] = {"background", "bottle", "shoes", "wire", "trash can", "clothes"};
 
-    ObstacleDetector::ObstacleDetector(const ObstacleDetectOption &option)
-        : option(option)
+    ObstacleDetector::ObstacleDetector(ace::sensor::CameraInterface *camera,
+                                       ObstacleDetectOption &option)
+        : m_camera(camera), option(option)
     {
-    }
+      m_timer = std::make_shared<Timer>();
+      cameraParamsInit();
+    };
 
     bool ObstacleDetector::GenerateLocalMap(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, cv::Mat &localmap)
     {
@@ -63,7 +68,7 @@ namespace ace
 
       Eigen::Matrix3f &C = m_C;
       int rgbOriginV = m_rgbOrigin3D.x();
-      int rgbOriginU = m_rgbOrigin3D.y();
+      // int rgbOriginU = m_rgbOrigin3D.y();
       float depth = m_rgbOrigin3D.z();
 
       for (const auto &object : objects)
@@ -78,10 +83,10 @@ namespace ace
                                    (object.rect.y - C(1, 1)) / C(1, 2) * depth,
                                    depth};
 
-        int leftV = int(pointLeft.x() / option.resolution) + (option.width / 2),
-            leftU = option.height - int(pointLeft.z() / option.resolution);
-        int rightV = int(pointRight.x() / option.resolution) + (option.width / 2),
-            rightU = option.height - int(pointRight.z() / option.resolution);
+        int leftV = int(pointLeft.x() / option.resolution) + (option.width / 2);
+        // leftU = option.height - int(pointLeft.z() / option.resolution);
+        int rightV = int(pointRight.x() / option.resolution) + (option.width / 2);
+        // rightU = option.height - int(pointRight.z() / option.resolution);
 
         std::vector<cv::Point2i> objectPoints;
         std::vector<int> objectUs;
@@ -174,7 +179,7 @@ namespace ace
 
     bool ObstacleDetector::GetLocalMap(cv::Mat &map)
     {
-      if (camera == nullptr)
+      if (m_camera == nullptr)
       {
         LogError("camera init failture");
         return false;
@@ -182,7 +187,7 @@ namespace ace
 
       cv::Mat rgb;
       std::vector<Eigen::Vector3d> pointCloud;
-      if (!camera->ReadFrame(rgb, pointCloud))
+      if (!m_camera->ReadFrame(rgb, pointCloud))
       {
         LogError("ObstacleDetector reads camera frame failed");
         return false;
@@ -403,32 +408,32 @@ namespace ace
       // std::cout << "@test filter after: " << std::get<0>(filter)->points_.size() << std::endl;
 
       // output_pointCloud = std::get<0>(filter)->points_;
-      // return true;
+      return true;
     }
 
     void ObstacleDetector::cameraParamsInit()
     {
-      // camera->GetCalibration(m_C);
-      // Eigen::Matrix3f R;
-      // Eigen::Vector3f T;
+      m_camera->GetCalibration(m_C);
+      Eigen::Matrix3f R;
+      Eigen::Vector3f T;
 
-      // camera->GetExtrinsic(R, T);
+      m_camera->GetExtrinsic(R, T);
 
-      // Eigen::Vector3f rgbOrigin{0};
-      // rgbOrigin = R.inverse() * (rgbOrigin - T);
+      Eigen::Vector3f rgbOrigin{0};
+      rgbOrigin = R.inverse() * (rgbOrigin - T);
 
-      // int rgbOriginV = int(rgbOrigin.x() / option.resolution) + (option.width / 2),
-      //     rgbOriginU = option.height - int(rgbOrigin.z() / option.resolution);
+      int rgbOriginV = int(rgbOrigin.x() / option.resolution) + (option.width / 2),
+          rgbOriginU = option.height - int(rgbOrigin.z() / option.resolution);
 
-      // float depth = option.height * option.resolution;
-      // m_rgbOrigin3D << rgbOriginV, rgbOriginU, depth;
+      float depth = option.height * option.resolution;
+      m_rgbOrigin3D << rgbOriginV, rgbOriginU, depth;
 
-      // const double lidarTop = option.lidarTop;
-      // const double baseBottom = option.baseBottom;
-      // const double measureDensity = 2.0;
+      const double lidarTop = option.lidarTop;
+      const double baseBottom = option.baseBottom;
+      const double measureDensity = 2.0;
 
-      // m_blockProb = 1 / (option.resolution / measureDensity *
-      //                    (lidarTop - baseBottom) / measureDensity);
+      m_blockProb = 1 / (option.resolution / measureDensity *
+                         (lidarTop - baseBottom) / measureDensity);
     }
 
     int ObstacleDetector::contourFilter(cv::Mat &input_map)
@@ -437,11 +442,11 @@ namespace ace
       std::vector<cv::Vec4i> g_vHierarchy;
 
       cv::findContours(input_map, contours, g_vHierarchy, cv::RETR_LIST, cv::CHAIN_APPROX_NONE, cv::Point(0, 0));
-      for (int i = 0; i < contours.size(); ++i)
+      for (size_t i = 0; i < contours.size(); ++i)
       {
         if (contours[i].size() < 10)
         {
-          for (int j = 0; j < contours[i].size(); ++j)
+          for (size_t j = 0; j < contours[i].size(); ++j)
           {
             input_map.at<uchar>(contours[i][j]) = 0;
           }

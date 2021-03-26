@@ -37,9 +37,15 @@ INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 find_package(OpenMP)
 find_package(PCL REQUIRED COMPONENTS common)
 
-set(ACE_THIRDPARTY_PATH ${CMAKE_CURRENT_LIST_DIR}/thirdparty)
-include_directories(${ACE_THIRDPARTY_PATH}/include)
+set(MOCK_THIRDPARTY_PATH ${CMAKE_CURRENT_LIST_DIR}/thirdparty)
+include_directories(${MOCK_THIRDPARTY_PATH}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/ncnn_lib/include/ncnn)
+
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+    set (ACE_ARCH x64)
+else ()
+    set (ACE_ARCH aarch64)
+endif ()
 
 if(NOT RK3399)
     message("build for flatform x64_linux")
@@ -197,6 +203,9 @@ add_definitions(${PCL_DEFINITIONS})
 #   ${catkin_LIBRARIES}
 # )
 
+
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+
 set(PERCEPTION_SRC
     src/subscriber/cloud_subscriber.cpp
     src/subscriber/color_subscriber.cpp
@@ -218,16 +227,13 @@ set(PERCEPTION_SRC
     src/object_detecion/object_detection.cpp
     src/object_detecion/object_types.cpp
     src/system.cpp
+    src/sensor/camera.cpp
+    src/utils/readyaml.cpp
     )
 
-# SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin")
-
-SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-
-
-
 add_executable(mock_perception ${PERCEPTION_SRC})
-target_link_libraries(mock_perception ${catkin_LIBRARIES} ${OpenCV_LIBS} pthread ncnn ${PCL_LIBRARIES})
+target_link_libraries(mock_perception PUBLIC ${catkin_LIBRARIES} ${OpenCV_LIBS} pthread ncnn ${PCL_LIBRARIES}  ${MOCK_THIRDPARTY_PATH}/lib/${ACE_ARCH}/Vzense/libvzense_api.so)
+
 
 #############
 ## Install ##

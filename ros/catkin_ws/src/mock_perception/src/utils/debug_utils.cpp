@@ -50,3 +50,10 @@ int64_t GetTimeStamp()
     return timeNow.count();
 }
 
+Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R)
+{
+    Eigen::MatrixXd T(R.rows, R.cols);
+    cv::cv2eigen(R, T);
+    return T;
+}
+

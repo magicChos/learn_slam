@@ -5,6 +5,7 @@
 #include "obstacle_detection/obstacle_detection.h"
 #include "sensor_data/obstacle_data.hpp"
 #include <vector>
+#include "sensor/camera.h"
 
 class ObstacleDetector;
 class ObstacleDetectOption;
@@ -35,7 +36,10 @@ private:
     geometry_messages::Pose2D m_robot_pose;
     nav_messages::FusionOccupancyGrid m_occupancy_grid;
     std::shared_ptr<ace::perception::ObstacleDetector> m_obstacle_detector;
+    std::shared_ptr<ace::sensor::CameraInterface> m_camera;
+
     ace::perception::ObstacleDetectOption m_option;
 
     std::vector<ObstaclePoint> m_obstacle_pts;
+
 };
