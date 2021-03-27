@@ -23,43 +23,49 @@ MockSystem::~MockSystem()
 
 void MockSystem::Run()
 {
-    ros::Rate rate(100);
-    while (ros::ok())
-    {
-        usleep(1000);
-        ros::spinOnce();
-        if (!m_map_sub->parse_data(m_occupancy_grid))
-        {
-            continue;
-        }
-        read_data();
+    // ros::Rate rate(100);
+    // while (ros::ok())
+    // {
+    //     usleep(1000);
+    //     ros::spinOnce();
+    //     if (!m_map_sub->parse_data(m_occupancy_grid))
+    //     {
+    //         continue;
+    //     }
+    //     read_data();
 
-        while (has_data())
-        {
-            if (!check_data())
-            {
-                continue;
-            }
+    //     while (has_data())
+    //     {
+    //         if (!check_data())
+    //         {
+    //             continue;
+    //         }
 
-            cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
-        }
-    }
+    //         // printTimeStamp(m_current_image_data , m_current_cloud_data , m_robot_pose);
+    //         cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
+    //     }
+
+    //     rate.sleep();
+    // }
 }
 
 void MockSystem::handleRobotPose()
 {
-    ros::Rate rate(300);
+    ros::Rate rate(350);
     while (ros::ok())
     {
         int64_t current_timestamp = GetTimeStamp();
-        std::cout << "current_timestamp: " << current_timestamp << std::endl;
+        // std::cout << "current_timestamp: " << current_timestamp << std::endl;
         usleep(1000);
         geometry_messages::Pose2D robot_pose;
         if (m_listener->LookupData(robot_pose))
         {
             std::lock_guard<std::mutex> robot_pose_mutex(m_robot_pose_mutex);
             m_robot_pose_buffer.emplace_back(robot_pose);
+            // std::cout << "robot timestamp: " << robot_pose.timestamp << std::endl;
         }
+
+        rate.sleep();
     }
 }
 
@@ -70,7 +76,7 @@ void MockSystem::handleMapMessage(const nav_msgs::OccupancyGridConstPtr &msg)
         return;
     }
 
-    if (msg->info.width == m_occupancy_grid.info.width && msg->info.height == m_occupancy_grid.info.height && m_occupancy_grid.data.size() == msg->data.size() || msg->data.size() == 0)
+    if (m_occupancy_grid.data.size() == msg->data.size() || msg->data.size() == 0)
     {
         return;
     }
@@ -144,7 +150,7 @@ bool MockSystem::check_data()
     {
         sign_theta_rapid_change_ = 0;
     }
- 
+
     convert_point_cloud(*m_current_cloud_data.cloud_ptr, m_current_cloud_vector_data);
     m_image_buffer.pop_front();
     m_cloud_buffer.pop_front();

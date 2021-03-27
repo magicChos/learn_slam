@@ -27,6 +27,7 @@ bool TFListener::LookupData(geometry_messages::Pose2D &robot_pose)
     try
     {
         tf::StampedTransform transform;
+        // listener_.waitForTransform(base_frame_id_, child_frame_id_, ros::Time(0), ros::Duration(3.0));
         listener_.lookupTransform(base_frame_id_, child_frame_id_, ros::Time(0), transform);
 
         double roll, pitch, yaw;
@@ -35,6 +36,8 @@ bool TFListener::LookupData(geometry_messages::Pose2D &robot_pose)
         robot_pose.y = transform.getOrigin().getY();
         robot_pose.theta = yaw;
         robot_pose.timestamp = transform.stamp_.toNSec() * 0.000001;
+
+        std::cout << "robot timestamp: " << robot_pose.timestamp << std::endl;
 
         return true;
     }

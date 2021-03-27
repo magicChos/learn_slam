@@ -57,3 +57,11 @@ Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R)
     return T;
 }
 
+void printTimeStamp(const ImageData &image_data, const CloudData &cloud_data, const geometry_messages::Pose2D &robot_pose)
+{
+    std::cout << "{-----------------------------------------------------"<< std::endl;
+    std::cout << "image timestamp: " << image_data.timestamp << std::endl;
+    std::cout << "cloud timestamp: " << cloud_data.timestamp << std::endl;
+    std::cout << "robot timestamp: " << robot_pose.timestamp << std::endl;
+    std::cout << "------------------------------------------------------}"<< std::endl;
+}

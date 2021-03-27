@@ -51,7 +51,7 @@ namespace ace
                 return false;
             }
             // LOG(INFO) << "Found device count: " << deviceCount << "\n";
-            
+
             LogInfo("Found device count: ");
 
             if (deviceIndex >= deviceCount)
@@ -539,26 +539,24 @@ namespace ace
             std::string current_dir = stlplus::folder_up(__FILE__);
             std::string calibration_file = current_dir + "../../config/camera_param.yaml";
 
-
             std::shared_ptr<YamlReader> yaml_reader_obj = std::make_shared<YamlReader>(calibration_file);
             cv::Mat camera_matrix;
             cv::Mat dist_matrix;
             cv::Mat extrinsic_matrix;
-            yaml_reader_obj->getNodeMatrix("camera_matrix:" , camera_matrix);
-            yaml_reader_obj->getNodeMatrix("dist_matrix:" , dist_matrix);
-            yaml_reader_obj->getNodeMatrix("extrinsic_matrix" , extrinsic_matrix);
+            yaml_reader_obj->getNodeMatrix("camera_matrix", camera_matrix);
+            yaml_reader_obj->getNodeMatrix("dist_matrix", dist_matrix);
+            yaml_reader_obj->getNodeMatrix("extrinsic_matrix", extrinsic_matrix);
 
-            C = Eigen::Matrix3f::Identity(3 , 3);
-            C(0 , 0) = camera_matrix.at<float>(0 , 2);
-            C(1 , 1) = camera_matrix.at<float>(1 , 2);
-            C(0 , 2) = camera_matrix.at<float>(0 , 0);
-            C(1 , 2) = camera_matrix.at<float>(1 , 1);
+            C = Eigen::Matrix3f::Identity(3, 3);
+            C(0, 0) = camera_matrix.at<float>(0, 2);
+            C(1, 1) = camera_matrix.at<float>(1, 2);
+            C(0, 2) = camera_matrix.at<float>(0, 0);
+            C(1, 2) = camera_matrix.at<float>(1, 1);
             params = C;
 
-
-            cv::Mat R_matrix =  extrinsic_matrix.rowRange(0 , 3).colRange(0 , 3);
+            cv::Mat R_matrix = extrinsic_matrix.rowRange(0, 3).colRange(0, 3);
             R = Mat2MatrixXd(R_matrix).cast<float>();
-            T << extrinsic_matrix.at<float>(0 , 3) , extrinsic_matrix.at<float>(1 , 3) , extrinsic_matrix.at<float>(2 , 3);
+            T << extrinsic_matrix.at<float>(0, 3), extrinsic_matrix.at<float>(1, 3), extrinsic_matrix.at<float>(2, 3);
         }
 
         bool Camera::exportCameraExtrinsicParams(cv::Mat &extrinsic_mat)

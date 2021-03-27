@@ -68,7 +68,6 @@ namespace ace
 
       Eigen::Matrix3f &C = m_C;
       int rgbOriginV = m_rgbOrigin3D.x();
-      // int rgbOriginU = m_rgbOrigin3D.y();
       float depth = m_rgbOrigin3D.z();
 
       for (const auto &object : objects)
@@ -419,7 +418,8 @@ namespace ace
 
       m_camera->GetExtrinsic(R, T);
 
-      Eigen::Vector3f rgbOrigin{0};
+      Eigen::Vector3f rgbOrigin;
+      rgbOrigin << 0, 0, 0;
       rgbOrigin = R.inverse() * (rgbOrigin - T);
 
       int rgbOriginV = int(rgbOrigin.x() / option.resolution) + (option.width / 2),

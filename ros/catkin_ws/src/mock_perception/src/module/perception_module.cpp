@@ -10,7 +10,7 @@ PerceptionModule::PerceptionModule()
     init_params();
 
     m_camera = std::make_shared<ace::sensor::VirtualCamera>();
-    m_obstacle_detector = std::make_shared<ace::perception::ObstacleDetector>(m_camera.get() , m_option);
+    m_obstacle_detector = std::make_shared<ace::perception::ObstacleDetector>(m_camera.get(), m_option);
 }
 
 bool PerceptionModule::init_params()
@@ -60,9 +60,32 @@ bool PerceptionModule::run()
     return true;
 }
 
+cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map)
+{
+    if (!GetLocalMap(rgb_image, pointCloud))
+    {
+        std::cout << "@test generate localmap failture" << std::endl;
+        return cv::Mat();
+    }
+    m_robot_pose = robot_pose;
+    updateGlobalMap(robot_pose, slam_map);
+
+    // cv::Mat fusion_map;
+    // fusion_process(fusion_map);
+
+    // std::cout << "finished" << std::endl;
+
+    // return fusion_map;
+
+    return cv::Mat();
+}
+
 bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud)
 {
     m_obstacle_detector->GenerateLocalMap(rgb_image, pointCloud, m_local_map);
+
+    cv::imshow("localmap" , m_local_map);
+    cv::waitKey(100);
     return true;
 }
 
@@ -140,22 +163,4 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
 bool PerceptionModule::fusion_process(cv::Mat &fusion_map)
 {
     return true;
-}
-
-cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map)
-{
-    if (!GetLocalMap(rgb_image, pointCloud))
-    {
-        std::cout << "@test generate localmap failture" << std::endl;
-        return cv::Mat();
-    }
-    m_robot_pose = robot_pose;
-    updateGlobalMap(robot_pose, slam_map);
-
-    cv::Mat fusion_map;
-    fusion_process(fusion_map);
-
-    std::cout << "finished" << std::endl;
-
-    return fusion_map;
 }

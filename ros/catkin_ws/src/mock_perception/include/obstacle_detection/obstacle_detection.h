@@ -37,7 +37,7 @@ namespace ace
             ObjectDetectionWrapper()
             {
                 std::string current_dir = stlplus::folder_up(__FILE__);
-                std::string model_path = current_dir + "../weights/object_detection";
+                std::string model_path = current_dir + "../../weights/object_detection/";
                 if (sric_detection_init(model_path) < 0)
                 {
                     // LOG(ERROR) << "Object detection initialization failed\n";
@@ -54,7 +54,7 @@ namespace ace
             int width = 200, height = 200;
             double lidarTop = 70.0, baseTop = 30.0, armTop = 0.0, armBottom = -20.0,
                    baseBottom = -30.0;
-            bool detectObjects = true;
+            bool detectObjects = false;
             bool visualize = false;
             bool debug = false;
             double minimumVisibleDistance = 350.0;
