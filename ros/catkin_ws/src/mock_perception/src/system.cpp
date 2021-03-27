@@ -23,30 +23,30 @@ MockSystem::~MockSystem()
 
 void MockSystem::Run()
 {
-    // ros::Rate rate(100);
-    // while (ros::ok())
-    // {
-    //     usleep(1000);
-    //     ros::spinOnce();
-    //     if (!m_map_sub->parse_data(m_occupancy_grid))
-    //     {
-    //         continue;
-    //     }
-    //     read_data();
+    ros::Rate rate(10);
+    while (ros::ok())
+    {
+        usleep(1000);
+        ros::spinOnce();
+        if (!m_map_sub->parse_data(m_occupancy_grid))
+        {
+            continue;
+        }
+        read_data();
 
-    //     while (has_data())
-    //     {
-    //         if (!check_data())
-    //         {
-    //             continue;
-    //         }
+        while (has_data())
+        {
+            if (!check_data())
+            {
+                continue;
+            }
 
-    //         // printTimeStamp(m_current_image_data , m_current_cloud_data , m_robot_pose);
-    //         cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
-    //     }
+            printTimeStamp(m_current_image_data , m_current_cloud_data , m_robot_pose);
+            cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
+        }
 
-    //     rate.sleep();
-    // }
+        rate.sleep();
+    }
 }
 
 void MockSystem::handleRobotPose()
@@ -122,7 +122,7 @@ bool MockSystem::check_data()
     m_robot_pose = m_robot_pose_buffer.front();
 
     int diff_cloud_time = m_current_cloud_data.timestamp - m_current_image_data.timestamp;
-    int diff_robot_time = m_current_image_data.timestamp - m_robot_pose.timestamp;
+    int diff_robot_time = m_current_cloud_data.timestamp - m_robot_pose.timestamp;
     if (diff_cloud_time < -50)
     {
         m_cloud_buffer.pop_front();

@@ -139,6 +139,8 @@ bool PerceptionModule::UpdateMap()
             }
         }
     }
+
+    std::cout << "@test obstacle points: " << m_obstacle_pts.size() << std::endl;
     return true;
 }
 
