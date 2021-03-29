@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     std::cout << base_map_matrix << std::endl;
 
 
-    Eigen::Vector3d d3 = Eigen::Vector3d(1 , 2 , 3);
+    Eigen::Vector3d d3 = Eigen::Vector3f(1 , 2 , 3);
     Eigen::Vector3f f3 = d3;
     std::cout << f3 << std::endl;
 
