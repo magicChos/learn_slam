@@ -32,12 +32,10 @@ void ColorSubscriber::msg_callback(const sensor_msgs::Image::ConstPtr &color_msg
     std::lock_guard<std::mutex> guard(buff_mutex_);
     try
     {
-        std::cout << "sub color image" << std::endl;
         cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(color_msg_ptr, sensor_msgs::image_encodings::BGR8);
         ImageData data;
         data.image = cv_ptr->image;
         data.timestamp = color_msg_ptr->header.stamp.toNSec() * 0.000001;
-        std::cout << "color timestamp: " << data.timestamp << std::endl;
         new_color_data_.emplace_back(data);
     }
     catch (cv_bridge::Exception &e)

@@ -37,8 +37,6 @@ bool TFListener::LookupData(geometry_messages::Pose2D &robot_pose)
         robot_pose.theta = yaw;
         robot_pose.timestamp = transform.stamp_.toNSec() * 0.000001;
 
-        std::cout << "robot timestamp: " << robot_pose.timestamp << std::endl;
-
         return true;
     }
     catch (tf::TransformException &ex)

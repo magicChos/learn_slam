@@ -59,3 +59,17 @@ nav_messages::FusionOccupancyGrid FusionOccupancyGrid_clone(const nav_messages::
 
     return temp;
 }
+
+bool worldToMap(double wx, double wy, int &mx, int &my, nav_messages::FusionOccupancyGrid &map)
+{
+    if (wx < map.info.origin.position.x || wy < map.info.origin.position.y)
+        return false;
+
+    mx = (int)((wx - map.info.origin.position.x) / map.info.resolution);
+    my = (int)((wy - map.info.origin.position.y) / map.info.resolution);
+
+    if (mx < map.info.width && my < map.info.height)
+        return true;
+
+    return false;
+}

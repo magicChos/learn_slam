@@ -30,6 +30,7 @@ void MockSystem::Run()
         ros::spinOnce();
         if (!m_map_sub->parse_data(m_occupancy_grid))
         {
+            // std::cout << "@test receive slam map failture" << std::endl;
             continue;
         }
         read_data();
@@ -42,6 +43,10 @@ void MockSystem::Run()
             }
 
             // printTimeStamp(m_current_image_data , m_current_cloud_data , m_robot_pose);
+            // cv::Mat slam_mat;
+            // slamMapToMat(m_occupancy_grid , slam_mat);
+            // cv::imshow("slam" , slam_mat);
+            // cv::waitKey(100);
             cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
         }
 
@@ -120,7 +125,7 @@ bool MockSystem::check_data()
     m_robot_pose = m_robot_pose_buffer.front();
 
     int diff_cloud_time = m_current_cloud_data.timestamp - m_current_image_data.timestamp;
-    int diff_robot_time = m_current_image_data.timestamp - m_robot_pose.timestamp;
+    int diff_robot_time = m_current_cloud_data.timestamp - m_robot_pose.timestamp;
     if (diff_cloud_time < -50)
     {
         m_cloud_buffer.pop_front();

@@ -2,6 +2,7 @@
 #include "common/ini_reader.h"
 #include "common/log.h"
 #include "utils/debug_utils.h"
+#include "utils/data_converter.hpp"
 
 PerceptionModule::PerceptionModule()
 {
@@ -50,8 +51,40 @@ bool PerceptionModule::init_params()
 
         m_base_2_map_matrix = Eigen::Matrix4d::Identity();
     }
+    m_current_timeStamp = GetTimeStamp();
 
     return true;
+}
+
+void PerceptionModule::fillLargeMap()
+{
+    // 填充放大后的map
+    float rate = static_cast<float>(m_occupancy_grid.info.resolution * 1000 / m_option.resolution);
+    m_resize_occupancy_grid.info.resolution = static_cast<float>(m_option.resolution / 1000);
+    m_resize_occupancy_grid.info.height = m_global_map.rows;
+    m_resize_occupancy_grid.info.width = m_global_map.cols;
+    m_resize_occupancy_grid.data_size = m_global_map.rows * m_global_map.cols;
+    m_resize_occupancy_grid.data.resize(m_resize_occupancy_grid.data_size);
+
+    for (int i = 0; i < m_resize_occupancy_grid.data_size; ++i)
+    {
+        int row = i / m_global_map.cols;
+        int col = i % m_global_map.cols;
+
+        int small_row = static_cast<int>(row / rate);
+        int small_col = static_cast<int>(col / rate);
+
+        int newIndex = small_row * m_occupancy_grid.info.width + small_col;
+        m_resize_occupancy_grid.data[i] = m_occupancy_grid.data[newIndex];
+    }
+
+    m_resize_occupancy_grid.info.origin.position.x = m_occupancy_grid.info.origin.position.x;
+    m_resize_occupancy_grid.info.origin.position.y = m_occupancy_grid.info.origin.position.y;
+    m_resize_occupancy_grid.info.origin.position.z = m_occupancy_grid.info.origin.position.z;
+    m_resize_occupancy_grid.info.origin.orientation.w = m_occupancy_grid.info.origin.orientation.w;
+    m_resize_occupancy_grid.info.origin.orientation.x = m_occupancy_grid.info.origin.orientation.x;
+    m_resize_occupancy_grid.info.origin.orientation.y = m_occupancy_grid.info.origin.orientation.y;
+    m_resize_occupancy_grid.info.origin.orientation.z = m_occupancy_grid.info.origin.orientation.z;
 }
 
 bool PerceptionModule::run()
@@ -62,31 +95,75 @@ bool PerceptionModule::run()
 
 cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map)
 {
+    nav_messages::FusionOccupancyGrid publish_map = FusionOccupancyGrid_clone(slam_map);
+
     if (!GetLocalMap(rgb_image, pointCloud))
     {
         std::cout << "@test generate localmap failture" << std::endl;
         return cv::Mat();
     }
+
     m_robot_pose = robot_pose;
     updateGlobalMap(robot_pose, slam_map);
 
-    // cv::Mat fusion_map;
-    // fusion_process(fusion_map);
+    nav_messages::FusionOccupancyGrid fusion_occupancy_resize_map = FusionOccupancyGrid_clone(m_resize_occupancy_grid);
+    fusion_stragty_resize(fusion_occupancy_resize_map);
+    fusion_stragety_recall(fusion_occupancy_resize_map, publish_map);
 
-    // std::cout << "finished" << std::endl;
+    if (m_option.debug)
+    {
+        cv::Mat fusion_mat;
+        slamMapToMat(fusion_occupancy_resize_map, fusion_mat);
+        cv::Mat flip_fusion_mat = fusion_mat.clone();
+        cv::flip(flip_fusion_mat, flip_fusion_mat, 0);
 
-    // return fusion_map;
+        int wx, wy;
+        worldToMap(m_robot_pose.x, m_robot_pose.y, wx, wy,
+                   fusion_occupancy_resize_map);
+        cv::circle(flip_fusion_mat, cv::Point(wx, wy), 3, cv::Scalar(0), 2);
 
-    return cv::Mat();
+        int wx_n, wy_n;
+        float target_x = m_robot_pose.x + 1 * std::cos(m_robot_pose.theta);
+        float target_y = m_robot_pose.y + 1 * std::sin(m_robot_pose.theta);
+        worldToMap(target_x, target_y, wx_n, wy_n,
+                   fusion_occupancy_resize_map);
+
+        cv::line(
+            flip_fusion_mat,
+            cv::Point(wx, wy),
+            cv::Point(wx_n, wy_n),
+            cv::Scalar(0), 1);
+
+        int flip_fusion_mat_height, flip_fusion_mat_width;
+        flip_fusion_mat_height = flip_fusion_mat.rows;
+        flip_fusion_mat_width = flip_fusion_mat.cols;
+
+        while (flip_fusion_mat_height > 1000 || flip_fusion_mat_width > 1000)
+        {
+            flip_fusion_mat_height = flip_fusion_mat_height >> 1;
+            flip_fusion_mat_width = flip_fusion_mat_width >> 1;
+        }
+        cv::resize(flip_fusion_mat, flip_fusion_mat, cv::Size(flip_fusion_mat_width, flip_fusion_mat_height));
+        cv::imshow("flip_fusion_mat", flip_fusion_mat);
+        cv::waitKey(100);
+    }
+
+    cv::Mat fusion_map;
+    slamMapToMat(publish_map, fusion_map);
+
+    return fusion_map;
 }
 
 bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud)
 {
-    m_obstacle_detector->GenerateLocalMap(rgb_image, pointCloud, m_local_map);
+    if (m_obstacle_detector->GenerateLocalMap(rgb_image, pointCloud, m_local_map))
+    {
+        cv::imshow("localmap", m_local_map);
+        cv::waitKey(100);
 
-    cv::imshow("localmap" , m_local_map);
-    cv::waitKey(100);
-    return true;
+        return true;
+    }
+    return false;
 }
 
 bool PerceptionModule::UpdateMap()
@@ -104,7 +181,9 @@ bool PerceptionModule::UpdateMap()
     tof_x = norm_point[0];
     tof_y = norm_point[1];
 
+    // std::cout << "@test 1--------------------------------" << std::endl;
     cv::flip(m_local_map, m_local_map, 1);
+    // std::cout << "@test 2--------------------------------" << std::endl;
 
     for (int u = 0; u < local_map_height; ++u)
     {
@@ -132,13 +211,139 @@ bool PerceptionModule::UpdateMap()
                 continue;
             }
 
-            if (local_map_value >= 200)
+            if (local_map_value > 127)
             {
                 int64_t time_stamp = GetTimeStamp();
                 m_obstacle_pts.push_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
             }
         }
     }
+
+    std::cout << "@test m_obstacle_pts size: " << m_obstacle_pts.size() << std::endl;
+
+    if (m_option.debug)
+    {
+        if (m_global_map.rows > 0 && m_global_map.cols > 0)
+        {
+            cv::Mat global_map_copy;
+            m_global_map.copyTo(global_map_copy);
+            cv::circle(
+                global_map_copy,
+                cv::Point((m_robot_pose.x - m_occupancy_grid.info.origin.position.x) /
+                              local_map_resolution,
+                          (m_robot_pose.y - m_occupancy_grid.info.origin.position.y) /
+                              local_map_resolution),
+                20, cv::Scalar(255));
+            cv::line(
+                global_map_copy,
+                cv::Point((m_robot_pose.x - m_occupancy_grid.info.origin.position.x) /
+                              local_map_resolution,
+                          (m_robot_pose.y - m_occupancy_grid.info.origin.position.y) /
+                              local_map_resolution),
+                cv::Point((m_robot_pose.x + 1 * std::cos(m_robot_pose.theta) -
+                           m_occupancy_grid.info.origin.position.x) /
+                              local_map_resolution,
+                          (m_robot_pose.y + 1 * std::sin(m_robot_pose.theta) -
+                           m_occupancy_grid.info.origin.position.y) /
+                              local_map_resolution),
+                cv::Scalar(255), 1);
+            int wx, wy;
+            for (auto p : m_obstacle_pts)
+            {
+                worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
+                global_map_copy.at<uchar>(wy, wx) = 255;
+            }
+
+            int global_map_height = global_map_copy.rows;
+            int global_map_width = global_map_copy.cols;
+            while (global_map_height >= 1000 || global_map_width >= 1000)
+            {
+                global_map_height = global_map_height >> 1;
+                global_map_width = global_map_width >> 1;
+            }
+
+            cv::resize(global_map_copy, global_map_copy, cv::Size(global_map_width, global_map_height));
+            
+            cv::imshow("global map", global_map_copy);
+        }
+    }
+    return true;
+}
+
+bool PerceptionModule::fusion_stragty_resize(nav_messages::FusionOccupancyGrid &fusion_occupancy_grid)
+{
+    int data_size = fusion_occupancy_grid.data.size();
+    int wx, wy;
+    m_current_timeStamp = GetTimeStamp();
+
+    while (m_obstacle_pts.size() > 0)
+    {
+        auto pt = m_obstacle_pts.front();
+        if (m_current_timeStamp - pt.time_stamp > m_option.elapse_time)
+        {
+            m_obstacle_pts.pop_front();
+            worldToMap(pt.pt_x_, pt.pt_y_, wx, wy, fusion_occupancy_grid);
+            int newIndex = wx + fusion_occupancy_grid.info.width * wy;
+            if (newIndex >= data_size)
+            {
+                continue;
+            }
+            fusion_occupancy_grid.data[newIndex] = 0;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    for (auto &p : m_obstacle_pts)
+    {
+        worldToMap(p.pt_x_, p.pt_y_, wx, wy, fusion_occupancy_grid);
+        if (p.pix_val_ > 127)
+        {
+            int newIndex = wx + fusion_occupancy_grid.info.width * wy;
+            if (newIndex >= data_size)
+            {
+                continue;
+            }
+
+            // 未知障碍牄1�7
+            if (p.pix_val_ == 255)
+            {
+                fusion_occupancy_grid.data[newIndex] = 100;
+            }
+            else
+            {
+                fusion_occupancy_grid.data[newIndex] = p.pix_val_ - 100;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool PerceptionModule::fusion_stragety_recall(const nav_messages::FusionOccupancyGrid &fusion_occupancy_grid, nav_messages::FusionOccupancyGrid &fusion_occupancy_grid_small)
+{
+    int data_size = fusion_occupancy_grid.data_size;
+    int slam_resize_map_width = fusion_occupancy_grid.info.width;
+
+    float rate = fusion_occupancy_grid_small.info.resolution / fusion_occupancy_grid.info.resolution;
+    for (int i = 0; i < data_size; ++i)
+    {
+        if (fusion_occupancy_grid.data[i] == -1)
+        {
+            continue;
+        }
+        int row = i / slam_resize_map_width;
+        int col = i % slam_resize_map_width;
+
+        int small_row = static_cast<int>(row / rate);
+        int small_col = static_cast<int>(col / rate);
+
+        int newIndex = small_row * fusion_occupancy_grid_small.info.width + small_col;
+        fusion_occupancy_grid_small.data[newIndex] = fusion_occupancy_grid.data[i];
+    }
+
     return true;
 }
 
@@ -146,14 +351,25 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
 {
     if (m_occupancy_grid.data.size() == occupacy_grid.data.size() || occupacy_grid.data.size() == 0)
     {
+        return false;
     }
     else
     {
+        m_occupancy_grid = FusionOccupancyGrid_clone(occupacy_grid);
+
         float rate = static_cast<float>(occupacy_grid.info.resolution * 1000 / m_option.resolution);
         int global_height = static_cast<int>(occupacy_grid.info.height * rate);
         int global_width = static_cast<int>(occupacy_grid.info.width * rate);
         m_global_map = cv::Mat(global_height, global_width, CV_8UC1, cv::Scalar(127));
+
+        // std::cout << "@test 3------------------------------------" << std::endl;
+        if (m_option.debug)
+        {
+            fillLargeMap();
+        }
     }
+
+    // std::cout << "@test before update Map" << std::endl;
 
     UpdateMap();
 

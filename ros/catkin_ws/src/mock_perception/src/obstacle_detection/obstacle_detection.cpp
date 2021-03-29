@@ -57,7 +57,7 @@ namespace ace
       }
       m_timer->Toc();
       double cost_time = m_timer->Elasped();
-      std::cout << "inference cost time: " << cost_time << std::endl;
+      // std::cout << "@test inference cost time: " << cost_time << std::endl;
 
       if (option.debug)
       {
@@ -363,14 +363,14 @@ namespace ace
         return false;
       }
 
-      std::cout << "@test ----------------------------------------------" << std::endl;
+      // std::cout << "@test ----------------------------------------------" << std::endl;
       for (const auto &object : dets)
       {
         cv::rectangle(input_img, object.rect, cv::Scalar(255, 0, 0));
 
         char text[256];
         sprintf(text, "%s %.1f%%", sric_names[object.label], object.prob * 100);
-        std::cout << "det obj label: " << sric_names[object.label] << std::endl;
+        // std::cout << "det obj label: " << sric_names[object.label] << std::endl;
 
         int baseLine = 0;
         cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
@@ -391,7 +391,7 @@ namespace ace
         cv::putText(input_img, text, cv::Point(x, y + label_size.height),
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
       }
-      std::cout << "@test -------------------------------------------end" << std::endl;
+      // std::cout << "@test -------------------------------------------end" << std::endl;
 
       return true;
     }
