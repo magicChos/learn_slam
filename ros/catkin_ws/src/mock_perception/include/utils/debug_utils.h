@@ -29,4 +29,6 @@ Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R);
 
 void printTimeStamp(const ImageData &image_data , const CloudData &cloud_data , const geometry_messages::Pose2D &robot_pose);
 
+void printRobotPose(const geometry_messages::Pose2D &robot_pose);
+
 

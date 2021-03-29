@@ -263,7 +263,7 @@ bool PerceptionModule::UpdateMap()
             }
 
             cv::resize(global_map_copy, global_map_copy, cv::Size(global_map_width, global_map_height));
-            
+
             cv::imshow("global map", global_map_copy);
         }
     }
@@ -349,27 +349,26 @@ bool PerceptionModule::fusion_stragety_recall(const nav_messages::FusionOccupanc
 
 bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &occupacy_grid)
 {
-    if (m_occupancy_grid.data.size() == occupacy_grid.data.size() || occupacy_grid.data.size() == 0)
+    float cos_theta = std::cos(robot_pose.theta);
+    float sin_theta = std::sin(robot_pose.theta);
+
+    m_base_2_map_matrix(0, 0) = cos_theta;
+    m_base_2_map_matrix(0, 1) = -sin_theta;
+    m_base_2_map_matrix(0, 3) = robot_pose.x;
+    m_base_2_map_matrix(1, 0) = sin_theta;
+    m_base_2_map_matrix(1, 1) = cos_theta;
+    m_base_2_map_matrix(1, 3) = robot_pose.y;
+
+    m_occupancy_grid = FusionOccupancyGrid_clone(occupacy_grid);
+    float rate = static_cast<float>(occupacy_grid.info.resolution * 1000 / m_option.resolution);
+    int global_height = static_cast<int>(occupacy_grid.info.height * rate);
+    int global_width = static_cast<int>(occupacy_grid.info.width * rate);
+    m_global_map = cv::Mat(global_height, global_width, CV_8UC1, cv::Scalar(127));
+
+    if (m_option.debug)
     {
-        return false;
+        fillLargeMap();
     }
-    else
-    {
-        m_occupancy_grid = FusionOccupancyGrid_clone(occupacy_grid);
-
-        float rate = static_cast<float>(occupacy_grid.info.resolution * 1000 / m_option.resolution);
-        int global_height = static_cast<int>(occupacy_grid.info.height * rate);
-        int global_width = static_cast<int>(occupacy_grid.info.width * rate);
-        m_global_map = cv::Mat(global_height, global_width, CV_8UC1, cv::Scalar(127));
-
-        // std::cout << "@test 3------------------------------------" << std::endl;
-        if (m_option.debug)
-        {
-            fillLargeMap();
-        }
-    }
-
-    // std::cout << "@test before update Map" << std::endl;
 
     UpdateMap();
 

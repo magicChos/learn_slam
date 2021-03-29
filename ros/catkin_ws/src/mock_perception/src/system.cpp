@@ -47,6 +47,7 @@ void MockSystem::Run()
             // slamMapToMat(m_occupancy_grid , slam_mat);
             // cv::imshow("slam" , slam_mat);
             // cv::waitKey(100);
+            printRobotPose(m_robot_pose);
             cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
         }
 

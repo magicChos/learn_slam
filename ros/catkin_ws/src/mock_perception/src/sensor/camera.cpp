@@ -39,7 +39,6 @@ namespace ace
         bool Camera::Initialize(CameraOption option)
         {
             PsReturnStatus status;
-            uint32_t slope = 1450;
             uint32_t deviceCount;
 
             sessionIndex = 0;
