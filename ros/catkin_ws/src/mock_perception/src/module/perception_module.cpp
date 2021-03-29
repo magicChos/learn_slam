@@ -219,8 +219,6 @@ bool PerceptionModule::UpdateMap()
         }
     }
 
-    std::cout << "@test m_obstacle_pts size: " << m_obstacle_pts.size() << std::endl;
-
     if (m_option.debug)
     {
         if (m_global_map.rows > 0 && m_global_map.cols > 0)
