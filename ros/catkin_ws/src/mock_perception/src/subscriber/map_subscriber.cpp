@@ -34,11 +34,6 @@ void MapSubscriber::msg_callback(const nav_msgs::OccupancyGridConstPtr &msg)
         return;
     }
 
-    if (new_map_data.data.size() == msg->data.size() || msg->data.size() == 0)
-    {
-        return;
-    }
-
     convert_rosOccupancyGraid_FusionOccupancyGrid(msg , new_map_data);
     m_receive_slammap = true;
 }

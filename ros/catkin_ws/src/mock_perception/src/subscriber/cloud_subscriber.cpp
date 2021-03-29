@@ -26,9 +26,7 @@ void CloudSubscriber::msg_callback(const sensor_msgs::PointCloud::ConstPtr &clou
     std::lock_guard<std::mutex> guard(buff_mutex_);
     try
     {
-        std::cout << "sub color image" << std::endl;
         CloudData::CLOUD_PTR pcl_cloud_msg(new CloudData::CLOUD);
-
         sensor_msgs::PointCloud2 point_cloud;
         sensor_msgs::convertPointCloudToPointCloud2(*cloud_msg_ptr, point_cloud);
         pcl::fromROSMsg(point_cloud, *pcl_cloud_msg);

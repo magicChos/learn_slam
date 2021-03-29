@@ -40,12 +40,11 @@ void MockSystem::Run()
             {
                 continue;
             }
-
-            printTimeStamp(m_current_image_data , m_current_cloud_data , m_robot_pose);
+            printRobotPose(m_robot_pose);
             cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
         }
-
         rate.sleep();
+        
     }
 }
 

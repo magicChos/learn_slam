@@ -1,3 +1,4 @@
+#pragma once
 #include "module/base_module.h"
 #include <opencv2/opencv.hpp>
 #include <Eigen/Eigen>
@@ -6,6 +7,7 @@
 #include "sensor_data/obstacle_data.hpp"
 #include <vector>
 #include "sensor/camera.h"
+#include <deque>
 
 class ObstacleDetector;
 class ObstacleDetectOption;
@@ -28,18 +30,24 @@ private:
 
     bool init_params();
 
+    void fillLargeMap();
+
+    bool fusion_stragty_resize(nav_messages::FusionOccupancyGrid &fusion_occupancy_grid);
+
+    bool fusion_stragety_recall(const nav_messages::FusionOccupancyGrid &fusion_occupancy_grid, nav_messages::FusionOccupancyGrid &fusion_occupancy_grid_small);
+
 private:
     Eigen::Matrix4d m_tof_2_base_matrix;
     Eigen::Matrix4d m_base_2_map_matrix;
 
     cv::Mat m_global_map, m_local_map;
     geometry_messages::Pose2D m_robot_pose;
-    nav_messages::FusionOccupancyGrid m_occupancy_grid;
+    nav_messages::FusionOccupancyGrid m_occupancy_grid, m_resize_occupancy_grid;
     std::shared_ptr<ace::perception::ObstacleDetector> m_obstacle_detector;
     std::shared_ptr<ace::sensor::CameraInterface> m_camera;
 
     ace::perception::ObstacleDetectOption m_option;
 
-    std::vector<ObstaclePoint> m_obstacle_pts;
-
+    std::deque<ObstaclePoint> m_obstacle_pts;
+    int64_t m_current_timeStamp;
 };

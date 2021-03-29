@@ -65,3 +65,8 @@ void printTimeStamp(const ImageData &image_data, const CloudData &cloud_data, co
     std::cout << "robot timestamp: " << robot_pose.timestamp << std::endl;
     std::cout << "------------------------------------------------------}"<< std::endl;
 }
+
+void printRobotPose(const geometry_messages::Pose2D &robot_pose)
+{
+    std::cout << "robot pose: (" << robot_pose.x << " , " << robot_pose.y << " , " << robot_pose.theta << ")" << std::endl;
+}

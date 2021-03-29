@@ -12,3 +12,5 @@ bool convert_point_cloud(const pcl::PointCloud<pcl::PointXYZ> &point_cloud, std:
 bool convert_rosOccupancyGraid_FusionOccupancyGrid(const nav_msgs::OccupancyGridConstPtr &msg , nav_messages::FusionOccupancyGrid &fusion_grid);
 
 nav_messages::FusionOccupancyGrid FusionOccupancyGrid_clone(const nav_messages::FusionOccupancyGrid &map);
+
+bool worldToMap(double wx, double wy, int& mx, int& my, nav_messages::FusionOccupancyGrid& map);
