@@ -40,7 +40,7 @@ void MockSystem::Run()
             {
                 continue;
             }
-            printRobotPose(m_robot_pose);
+            // printRobotPose(m_robot_pose);
             cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
         }
         rate.sleep();
@@ -53,15 +53,12 @@ void MockSystem::handleRobotPose()
     ros::Rate rate(350);
     while (ros::ok())
     {
-        int64_t current_timestamp = GetTimeStamp();
-        // std::cout << "current_timestamp: " << current_timestamp << std::endl;
         usleep(1000);
         geometry_messages::Pose2D robot_pose;
         if (m_listener->LookupData(robot_pose))
         {
             std::lock_guard<std::mutex> robot_pose_mutex(m_robot_pose_mutex);
             m_robot_pose_buffer.emplace_back(robot_pose);
-            // std::cout << "robot timestamp: " << robot_pose.timestamp << std::endl;
         }
 
         rate.sleep();
