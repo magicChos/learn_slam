@@ -245,8 +245,6 @@ namespace ace
 
       map = cv::Mat(height, width, CV_32FC1, cv::Scalar(0));
       size_t point_number = pointCloud.size();
-
-// for (const auto &p : pointCloud)
 #pragma omp parallel for schedule(dynamic)
       for (size_t i = 0; i < point_number; ++i)
       {

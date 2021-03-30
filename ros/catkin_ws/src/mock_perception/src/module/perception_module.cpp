@@ -184,15 +184,6 @@ bool PerceptionModule::UpdateMap()
     int local_map_width = m_local_map.cols;
     int local_map_height = m_local_map.rows;
 
-    // float tof_x = m_robot_pose.x, tof_y = m_robot_pose.y;
-
-    // Eigen::Vector4d tof_in_map_coord =
-    //     m_base_2_map_matrix * m_tof_2_base_matrix * Eigen::Vector4d(0, 0, 0, 1);
-    // Eigen::Vector3d norm_point = tof_in_map_coord.head<3>() / tof_in_map_coord(3);
-
-    // tof_x = norm_point[0];
-    // tof_y = norm_point[1];
-
     float tof_x = m_tof_x;
     float tof_y = m_tof_y;
     float sin_theta = std::sin(m_robot_pose.theta);
