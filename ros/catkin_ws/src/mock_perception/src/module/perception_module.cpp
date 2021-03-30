@@ -41,6 +41,7 @@ bool PerceptionModule::init_params()
     m_option.hfov = reader->GetReal("params", "hfov", 1.2217304763960306);
     m_option.useTof = reader->GetBoolean("params", "useTof", true);
     m_option.elapse_time = reader->GetInteger("params", "elapse_time", 30000);
+    m_option.pix_thresh  = reader->GetInteger("params" , "pix_thresh" , 127);
 
     {
         m_tof_2_base_matrix << 1.0501503000000001e-02, 2.0494568000000001e-03,
@@ -214,7 +215,7 @@ bool PerceptionModule::UpdateMap()
                 continue;
             }
 
-            if (local_map_value > 127)
+            if (local_map_value > m_option.pix_thresh)
             {
                 m_obstacle_pts.push_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
             }
@@ -299,7 +300,7 @@ bool PerceptionModule::fusion_stragty_resize(nav_messages::FusionOccupancyGrid &
     for (auto &p : m_obstacle_pts)
     {
         worldToMap(p.pt_x_, p.pt_y_, wx, wy, fusion_occupancy_grid);
-        if (p.pix_val_ > 127)
+        if (p.pix_val_ > m_option.pix_thresh)
         {
             int newIndex = wx + fusion_occupancy_grid.info.width * wy;
             if (newIndex >= data_size)

@@ -62,6 +62,7 @@ namespace ace
             double hfov = 70.0 / 180.0 * atan(1) * 4;
             bool useTof = true;
             int64_t elapse_time = 30000;
+            int pix_thresh = 127;
         };
 
         class ObstacleDetector
