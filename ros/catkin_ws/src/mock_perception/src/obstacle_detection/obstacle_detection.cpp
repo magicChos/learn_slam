@@ -49,15 +49,15 @@ namespace ace
 
       std::vector<OBJECT> objects;
 
-      m_timer->Tic();
+      // m_timer->Tic();
       if (!ObjectDetectionWrapper::get().Detect(rgb, objects))
       {
         LogError("Object detection failed");
         return false;
       }
-      m_timer->Toc();
-      double cost_time = m_timer->Elasped();
-      // std::cout << "@test inference cost time: " << cost_time << std::endl;
+      // m_timer->Toc();
+      // double cost_time = m_timer->Elasped();
+      // // std::cout << "@test inference cost time: " << cost_time << std::endl;
 
       if (option.debug)
       {
@@ -244,9 +244,13 @@ namespace ace
       const double measureDistance_inv = 1 / 100.0;
 
       map = cv::Mat(height, width, CV_32FC1, cv::Scalar(0));
+      size_t point_number = pointCloud.size();
 
-      for (const auto &p : pointCloud)
+// for (const auto &p : pointCloud)
+#pragma omp parallel for schedule(dynamic)
+      for (size_t i = 0; i < point_number; ++i)
       {
+        auto &p = pointCloud[i];
         if (p.z() >= option.lidarTop || p.z() <= option.baseBottom)
         {
           continue;
@@ -279,6 +283,7 @@ namespace ace
       const int step = 400;
 
       int boundary = map.cols / 2 / std::atan(option.hfov / 2);
+#pragma omp parallel for schedule(dynamic)
       for (int i = boundary; i < 2 * map.rows + map.cols - 2 - boundary; ++i)
       {
         int u, v;
@@ -329,6 +334,7 @@ namespace ace
         }
       }
 
+#pragma omp parallel for schedule(dynamic)
       for (int u = 0; u < map.rows; ++u)
       {
         for (int v = 0; v < map.cols; ++v)
@@ -341,6 +347,7 @@ namespace ace
       }
       cv::morphologyEx(map, map, cv::MORPH_CLOSE, kernel);
 
+#pragma omp parallel for schedule(dynamic)
       for (int u = 0; u < map.rows; ++u)
       {
         for (int v = 0; v < map.cols; ++v)

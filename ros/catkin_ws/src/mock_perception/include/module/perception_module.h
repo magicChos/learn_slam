@@ -50,4 +50,7 @@ private:
 
     std::deque<ObstaclePoint> m_obstacle_pts;
     int64_t m_current_timeStamp;
+
+    float m_tof_x = 0.0;
+    float m_tof_y = 0.0;
 };

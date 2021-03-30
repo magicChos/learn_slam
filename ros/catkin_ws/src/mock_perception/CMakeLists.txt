@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(mock_perception)
 add_definitions(-std=c++14)
 
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 add_definitions("-Wall")
 
 FIND_PACKAGE( OpenMP REQUIRED)
@@ -232,8 +232,11 @@ set(PERCEPTION_SRC
     )
 
 add_executable(mock_perception ${PERCEPTION_SRC})
-target_link_libraries(mock_perception PUBLIC ${catkin_LIBRARIES} ${OpenCV_LIBS} pthread ncnn ${PCL_LIBRARIES}  ${MOCK_THIRDPARTY_PATH}/lib/${ACE_ARCH}/Vzense/libvzense_api.so)
-
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(mock_perception PUBLIC ${catkin_LIBRARIES} ${OpenCV_LIBS} pthread ncnn ${PCL_LIBRARIES} OpenMP::OpenMP_CXX  ${MOCK_THIRDPARTY_PATH}/lib/${ACE_ARCH}/Vzense/libvzense_api.so)
+else()
+  target_link_libraries(mock_perception PUBLIC ${catkin_LIBRARIES} ${OpenCV_LIBS} pthread ncnn ${PCL_LIBRARIES} ${MOCK_THIRDPARTY_PATH}/lib/${ACE_ARCH}/Vzense/libvzense_api.so)
+endif()
 
 #############
 ## Install ##

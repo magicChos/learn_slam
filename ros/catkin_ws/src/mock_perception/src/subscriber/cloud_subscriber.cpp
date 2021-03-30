@@ -27,6 +27,7 @@ void CloudSubscriber::msg_callback(const sensor_msgs::PointCloud::ConstPtr &clou
     try
     {
         CloudData::CLOUD_PTR pcl_cloud_msg(new CloudData::CLOUD);
+
         sensor_msgs::PointCloud2 point_cloud;
         sensor_msgs::convertPointCloudToPointCloud2(*cloud_msg_ptr, point_cloud);
         pcl::fromROSMsg(point_cloud, *pcl_cloud_msg);

@@ -60,19 +60,21 @@ void PerceptionModule::fillLargeMap()
 {
     // 填充放大后的map
     float rate = static_cast<float>(m_occupancy_grid.info.resolution * 1000 / m_option.resolution);
+    float rate_inv = 1 / rate;
     m_resize_occupancy_grid.info.resolution = static_cast<float>(m_option.resolution / 1000);
     m_resize_occupancy_grid.info.height = m_global_map.rows;
     m_resize_occupancy_grid.info.width = m_global_map.cols;
     m_resize_occupancy_grid.data_size = m_global_map.rows * m_global_map.cols;
     m_resize_occupancy_grid.data.resize(m_resize_occupancy_grid.data_size);
 
+#pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < m_resize_occupancy_grid.data_size; ++i)
     {
         int row = i / m_global_map.cols;
         int col = i % m_global_map.cols;
 
-        int small_row = static_cast<int>(row / rate);
-        int small_col = static_cast<int>(col / rate);
+        int small_row = static_cast<int>(row * rate_inv);
+        int small_col = static_cast<int>(col * rate_inv);
 
         int newIndex = small_row * m_occupancy_grid.info.width + small_col;
         m_resize_occupancy_grid.data[i] = m_occupancy_grid.data[newIndex];
@@ -96,6 +98,15 @@ bool PerceptionModule::run()
 cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map)
 {
     nav_messages::FusionOccupancyGrid publish_map = FusionOccupancyGrid_clone(slam_map);
+    m_tof_x = robot_pose.x;
+    m_tof_y = robot_pose.y;
+
+    Eigen::Vector4d tof_in_map_coord =
+        m_base_2_map_matrix * m_tof_2_base_matrix * Eigen::Vector4d(0, 0, 0, 1);
+    Eigen::Vector3d norm_point = tof_in_map_coord.head<3>() / tof_in_map_coord(3);
+
+    m_tof_x = norm_point[0];
+    m_tof_y = norm_point[1];
 
     if (!GetLocalMap(rgb_image, pointCloud))
     {
@@ -169,37 +180,38 @@ bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<E
 bool PerceptionModule::UpdateMap()
 {
     float local_map_resolution = m_option.resolution / 1000.0;
+    float local_map_resolution_inv = 1/local_map_resolution;
     int local_map_width = m_local_map.cols;
     int local_map_height = m_local_map.rows;
 
-    float tof_x = m_robot_pose.x, tof_y = m_robot_pose.y;
+    // float tof_x = m_robot_pose.x, tof_y = m_robot_pose.y;
 
-    Eigen::Vector4d tof_in_map_coord =
-        m_base_2_map_matrix * m_tof_2_base_matrix * Eigen::Vector4d(0, 0, 0, 1);
-    Eigen::Vector3d norm_point = tof_in_map_coord.head<3>() / tof_in_map_coord(3);
+    // Eigen::Vector4d tof_in_map_coord =
+    //     m_base_2_map_matrix * m_tof_2_base_matrix * Eigen::Vector4d(0, 0, 0, 1);
+    // Eigen::Vector3d norm_point = tof_in_map_coord.head<3>() / tof_in_map_coord(3);
 
-    tof_x = norm_point[0];
-    tof_y = norm_point[1];
+    // tof_x = norm_point[0];
+    // tof_y = norm_point[1];
 
-    // std::cout << "@test 1--------------------------------" << std::endl;
+    float tof_x = m_tof_x;
+    float tof_y = m_tof_y;
+    float sin_theta = std::sin(m_robot_pose.theta);
+    float cos_theta = std::cos(m_robot_pose.theta);
+
     cv::flip(m_local_map, m_local_map, 1);
-    // std::cout << "@test 2--------------------------------" << std::endl;
-
+    int64_t time_stamp = GetTimeStamp();
+#pragma omp parallel for schedule(dynamic)
     for (int u = 0; u < local_map_height; ++u)
     {
         for (int v = 0; v < local_map_width; ++v)
         {
             float du = (local_map_height - u) * local_map_resolution,
                   dv = (v - local_map_width / 2) * local_map_resolution;
-            float gu = tof_x + du * std::cos(m_robot_pose.theta) -
-                       dv * std::sin(m_robot_pose.theta);
-            float gv = tof_y + du * std::sin(m_robot_pose.theta) +
-                       dv * std::cos(m_robot_pose.theta);
+            float gu = tof_x + du * cos_theta - dv * sin_theta;
+            float gv = tof_y + du * sin_theta + dv * cos_theta;
 
-            int cgu = std::round((gu - m_occupancy_grid.info.origin.position.x) /
-                                 local_map_resolution);
-            int cgv = std::round((gv - m_occupancy_grid.info.origin.position.y) /
-                                 local_map_resolution);
+            int cgu = std::round((gu - m_occupancy_grid.info.origin.position.x) * local_map_resolution_inv);
+            int cgv = std::round((gv - m_occupancy_grid.info.origin.position.y) * local_map_resolution_inv);
             if (cgu < 0 || cgv < 0 || cgu >= m_global_map.cols ||
                 cgv >= m_global_map.rows)
             {
@@ -213,7 +225,6 @@ bool PerceptionModule::UpdateMap()
 
             if (local_map_value > 127)
             {
-                int64_t time_stamp = GetTimeStamp();
                 m_obstacle_pts.push_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
             }
         }
