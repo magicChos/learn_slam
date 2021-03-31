@@ -31,4 +31,9 @@ void printTimeStamp(const ImageData &image_data , const CloudData &cloud_data , 
 
 void printRobotPose(const geometry_messages::Pose2D &robot_pose);
 
+// 遍历图像获取聚类后的box
+bool pixelCluster(cv::Mat &img, std::map<uchar, cv::Rect> &cluster_result);
+
+cv::Rect getRect(const std::vector<cv::Point> &points);
+
 

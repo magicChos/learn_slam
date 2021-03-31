@@ -1,4 +1,5 @@
 #include "utils/debug_utils.h"
+#include <set>
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv)
 {
@@ -59,14 +60,82 @@ Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R)
 
 void printTimeStamp(const ImageData &image_data, const CloudData &cloud_data, const geometry_messages::Pose2D &robot_pose)
 {
-    std::cout << "{-----------------------------------------------------"<< std::endl;
+    std::cout << "{-----------------------------------------------------" << std::endl;
     std::cout << "image timestamp: " << image_data.timestamp << std::endl;
     std::cout << "cloud timestamp: " << cloud_data.timestamp << std::endl;
     std::cout << "robot timestamp: " << robot_pose.timestamp << std::endl;
-    std::cout << "------------------------------------------------------}"<< std::endl;
+    std::cout << "------------------------------------------------------}" << std::endl;
 }
 
 void printRobotPose(const geometry_messages::Pose2D &robot_pose)
 {
     std::cout << "robot pose: (" << robot_pose.x << " , " << robot_pose.y << " , " << robot_pose.theta << ")" << std::endl;
+}
+
+bool pixelCluster(cv::Mat &img, std::map<uchar, cv::Rect> &cluster_result)
+{
+    int height = img.rows;
+    int width = img.cols;
+
+    cluster_result.clear();
+
+    std::map<uchar, std::vector<cv::Point>> cluster_points;
+    for (size_t i = 0; i < height; ++i)
+    {
+        uchar *p = img.ptr<uchar>(i);
+        for (int j = 0; j < width; ++j)
+        {
+            if (p[j] == 127 || p[j] == 255 || p[j] < 200)
+            {
+                continue;
+            }
+
+            if (p[j] >= 201 && p[j] <= 205)
+            {
+                cluster_points[p[j]].emplace_back(cv::Point(j, i));
+            }
+        }
+    }
+
+    for (auto iter : cluster_points)
+    {
+        uchar label = iter.first;
+        cv::Rect rect = getRect(iter.second);
+        cluster_result[label] = rect;
+    }
+
+    return true;
+}
+
+cv::Rect getRect(const std::vector<cv::Point> &points)
+{
+    int xmin = INT_MAX;
+    int ymin = INT_MAX;
+    int xmax = INT_MIN;
+    int ymax = INT_MIN;
+
+    for (auto p : points)
+    {
+        if (p.x < xmin)
+        {
+            xmin = p.x;
+        }
+
+        if (p.y < ymin)
+        {
+            ymin = p.y;
+        }
+
+        if (p.x > xmax)
+        {
+            xmax = p.x;
+        }
+
+        if (p.y > ymax)
+        {
+            ymax = p.y;
+        }
+    }
+
+    return cv::Rect(cv::Point2i(xmin, ymin), cv::Point2i(xmax + 1, ymax + 1));
 }

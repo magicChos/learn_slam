@@ -12,6 +12,7 @@ MockSystem::MockSystem(std::shared_ptr<BaseModule> module)
     m_cloud_sub = std::make_shared<CloudSubscriber>(m_nh, "/pico_camera/point_cloud", 10000);
     m_map_sub = std::make_shared<MapSubscriber>(m_nh, "/map", 10000);
     m_listener = std::make_shared<TFListener>(m_nh, "map", "base_footprint");
+    m_timer = std::make_shared<Timer>();
 
     m_robot_thread = std::make_shared<std::thread>(&MockSystem::handleRobotPose, this);
     m_process_thread = std::make_shared<std::thread>(&MockSystem::Run, this);
@@ -40,7 +41,7 @@ void MockSystem::Run()
             {
                 continue;
             }
-            // printRobotPose(m_robot_pose);
+            
             cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
         }
         rate.sleep();

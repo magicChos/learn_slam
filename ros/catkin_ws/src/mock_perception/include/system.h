@@ -13,6 +13,7 @@
 #include <mutex>
 #include <nav_msgs/OccupancyGrid.h>
 #include "lcm_cpp/nav_messages/FusionOccupancyGrid.hpp"
+#include "utils/perception_time.h"
 
 class MockSystem
 {
@@ -65,5 +66,7 @@ private:
 
     bool receive_slammap = false;
     int sign_theta_rapid_change_ = -1;
+
+    std::shared_ptr<Timer> m_timer;
 
 };

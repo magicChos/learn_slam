@@ -44,20 +44,18 @@ namespace ace
 
     bool ObstacleDetector::detectObjects(cv::Mat &map, const cv::Mat rgb)
     {
+      m_timer->Tic();
+
       if (option.visualize)
         cv::cvtColor(map, map, cv::COLOR_GRAY2BGR);
 
       std::vector<OBJECT> objects;
 
-      // m_timer->Tic();
       if (!ObjectDetectionWrapper::get().Detect(rgb, objects))
       {
         LogError("Object detection failed");
         return false;
       }
-      // m_timer->Toc();
-      // double cost_time = m_timer->Elasped();
-      // // std::cout << "@test inference cost time: " << cost_time << std::endl;
 
       if (option.debug)
       {
@@ -83,9 +81,7 @@ namespace ace
                                    depth};
 
         int leftV = int(pointLeft.x() / option.resolution) + (option.width / 2);
-        // leftU = option.height - int(pointLeft.z() / option.resolution);
         int rightV = int(pointRight.x() / option.resolution) + (option.width / 2);
-        // rightU = option.height - int(pointRight.z() / option.resolution);
 
         std::vector<cv::Point2i> objectPoints;
         std::vector<int> objectUs;
@@ -109,7 +105,6 @@ namespace ace
               auto &c = map.at<cv::Vec3b>(u, v);
               if (c[0] == 255 || c[1] == 255 || c[2] == 255)
               {
-                // c = color;
                 objectPoints.push_back({u, v});
                 objectUs.push_back(u);
               }
@@ -172,7 +167,7 @@ namespace ace
           //          cv::Point(rgbOriginV, rgbOriginU), color);
         }
       }
-
+      
       return true;
     }
 
@@ -368,7 +363,6 @@ namespace ace
         return false;
       }
 
-      // std::cout << "@test ----------------------------------------------" << std::endl;
       for (const auto &object : dets)
       {
         cv::rectangle(input_img, object.rect, cv::Scalar(255, 0, 0));
@@ -396,7 +390,6 @@ namespace ace
         cv::putText(input_img, text, cv::Point(x, y + label_size.height),
                     cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
       }
-      // std::cout << "@test -------------------------------------------end" << std::endl;
 
       return true;
     }

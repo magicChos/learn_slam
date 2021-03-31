@@ -170,8 +170,20 @@ bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<E
 {
     if (m_obstacle_detector->GenerateLocalMap(rgb_image, pointCloud, m_local_map))
     {
-        cv::imshow("localmap", m_local_map);
-        cv::waitKey(100);
+
+        // std::map<uchar , cv::Rect> cluster_res;
+        // pixelCluster(m_local_map , cluster_res);
+
+        // cv::Mat temp = m_local_map.clone();
+        // for (auto p: cluster_res)
+        // {
+        //     auto rect = p.second;
+        //     cv::rectangle(temp , rect , cv::Scalar(255) , 1);
+        // }
+        // cv::imshow("localmap", temp);
+
+        cv::imshow("localmap" , m_local_map);
+        cv::waitKey(10);
 
         return true;
     }
@@ -192,6 +204,7 @@ bool PerceptionModule::UpdateMap()
 
     cv::flip(m_local_map, m_local_map, 1);
     int64_t time_stamp = GetTimeStamp();
+    
 #pragma omp parallel for schedule(dynamic)
     for (int u = 0; u < local_map_height; ++u)
     {
