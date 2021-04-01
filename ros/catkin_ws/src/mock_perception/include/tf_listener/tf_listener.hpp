@@ -16,11 +16,11 @@ public:
     TFListener(ros::NodeHandle &nh, std::string base_frame_id, std::string child_frame_id);
     TFListener() = default;
 
-    bool LookupData(Eigen::Matrix4f &transform_matrix);
+    bool LookupData(Eigen::Matrix4d &transform_matrix);
 
     bool LookupData(geometry_messages::Pose2D &robot_pose);
 private:
-    bool TransformToMatrix(const tf::StampedTransform &transform, Eigen::Matrix4f &transform_matrix);
+    bool TransformToMatrix(const tf::StampedTransform &transform, Eigen::Matrix4d &transform_matrix);
 
 private:
     ros::NodeHandle nh_;

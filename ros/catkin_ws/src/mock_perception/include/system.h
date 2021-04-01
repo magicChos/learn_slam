@@ -37,11 +37,12 @@ private:
     bool check_data();
 
 private:
+    Eigen::Matrix4d m_tof_base_matrix;
     std::shared_ptr<ColorSubscriber> m_color_sub;
     std::shared_ptr<CloudSubscriber> m_cloud_sub;
     std::shared_ptr<MapSubscriber> m_map_sub;
     // ros::Subscriber m_map_sub;
-    std::shared_ptr<TFListener> m_listener;
+    std::shared_ptr<TFListener> m_listener , m_tof_listener;
 
     ros::NodeHandle m_nh;
     std::shared_ptr<std::thread> m_process_thread;

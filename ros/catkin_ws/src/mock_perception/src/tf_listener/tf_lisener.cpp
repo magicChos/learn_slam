@@ -7,7 +7,7 @@ TFListener::TFListener(ros::NodeHandle &nh, std::string base_frame_id, std::stri
 {
 }
 
-bool TFListener::LookupData(Eigen::Matrix4f &transform_matrix)
+bool TFListener::LookupData(Eigen::Matrix4d &transform_matrix)
 {
     try
     {
@@ -44,7 +44,7 @@ bool TFListener::LookupData(geometry_messages::Pose2D &robot_pose)
     }
 }
 
-bool TFListener::TransformToMatrix(const tf::StampedTransform &transform, Eigen::Matrix4f &transform_matrix)
+bool TFListener::TransformToMatrix(const tf::StampedTransform &transform, Eigen::Matrix4d &transform_matrix)
 {
     Eigen::Translation3f tl_btol(transform.getOrigin().getX(), transform.getOrigin().getY(), transform.getOrigin().getZ());
 
@@ -55,7 +55,7 @@ bool TFListener::TransformToMatrix(const tf::StampedTransform &transform, Eigen:
     Eigen::AngleAxisf rot_z_btol(yaw, Eigen::Vector3f::UnitZ());
 
     // 此矩阵为 child_frame_id 到 base_frame_id 的转换矩阵
-    transform_matrix = (tl_btol * rot_z_btol * rot_y_btol * rot_x_btol).matrix();
+    transform_matrix = (tl_btol * rot_z_btol * rot_y_btol * rot_x_btol).matrix().cast<double>();
 
     return true;
 }

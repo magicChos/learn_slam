@@ -18,4 +18,9 @@ public:
     
     // return fusion map
     virtual cv::Mat run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose , const nav_messages::FusionOccupancyGrid &slam_map) = 0;
+
+    virtual void setTofBaseMatrix(Eigen::Matrix4d &tofBaseMatrix) = 0;
+
+
 };
+

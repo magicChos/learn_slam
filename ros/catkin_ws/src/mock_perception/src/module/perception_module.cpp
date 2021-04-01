@@ -14,6 +14,11 @@ PerceptionModule::PerceptionModule()
     m_obstacle_detector = std::make_shared<ace::perception::ObstacleDetector>(m_camera.get(), m_option);
 }
 
+void PerceptionModule::setTofBaseMatrix(Eigen::Matrix4d &tofBaseMatrix)
+{
+    m_tof_2_base_matrix = tofBaseMatrix;
+}
+
 bool PerceptionModule::init_params()
 {
     std::string current_dir = stlplus::folder_up(__FILE__);
@@ -41,7 +46,7 @@ bool PerceptionModule::init_params()
     m_option.hfov = reader->GetReal("params", "hfov", 1.2217304763960306);
     m_option.useTof = reader->GetBoolean("params", "useTof", true);
     m_option.elapse_time = reader->GetInteger("params", "elapse_time", 30000);
-    m_option.pix_thresh  = reader->GetInteger("params" , "pix_thresh" , 127);
+    m_option.pix_thresh = reader->GetInteger("params", "pix_thresh", 127);
 
     {
         m_tof_2_base_matrix << 1.0501503000000001e-02, 2.0494568000000001e-03,
@@ -182,7 +187,7 @@ bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<E
         // }
         // cv::imshow("localmap", temp);
 
-        cv::imshow("localmap" , m_local_map);
+        cv::imshow("localmap", m_local_map);
         cv::waitKey(10);
 
         return true;
@@ -193,7 +198,7 @@ bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<E
 bool PerceptionModule::UpdateMap()
 {
     float local_map_resolution = m_option.resolution / 1000.0;
-    float local_map_resolution_inv = 1/local_map_resolution;
+    float local_map_resolution_inv = 1 / local_map_resolution;
     int local_map_width = m_local_map.cols;
     int local_map_height = m_local_map.rows;
 
@@ -204,7 +209,7 @@ bool PerceptionModule::UpdateMap()
 
     cv::flip(m_local_map, m_local_map, 1);
     int64_t time_stamp = GetTimeStamp();
-    
+
 #pragma omp parallel for schedule(dynamic)
     for (int u = 0; u < local_map_height; ++u)
     {
