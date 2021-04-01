@@ -1506,6 +1506,7 @@ bool Tracking::NeedNewKeyFrame()
     if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
         return false;
 
+    // 获取地图中关键帧的数量
     const int nKFs = mpMap->KeyFramesInMap();
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation
