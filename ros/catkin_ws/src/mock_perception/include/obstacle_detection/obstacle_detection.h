@@ -55,7 +55,6 @@ namespace ace
             double lidarTop = 70.0, baseTop = 30.0, armTop = 0.0, armBottom = -20.0,
                    baseBottom = -30.0;
             bool detectObjects = false;
-            bool visualize = false;
             bool debug = false;
             double minimumVisibleDistance = 350.0;
             double maximumVisibleDistance = 1200.0;

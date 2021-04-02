@@ -39,7 +39,6 @@ bool PerceptionModule::init_params()
     m_option.armBottom = reader->GetReal("params", "armBottom", -20.0);
     m_option.baseBottom = reader->GetReal("params", "baseBottom", -30.0);
     m_option.detectObjects = reader->GetBoolean("params", "detectObjects", true);
-    m_option.visualize = reader->GetBoolean("params", "visualize", false);
     m_option.debug = reader->GetBoolean("params", "debug", false);
     m_option.minimumVisibleDistance = reader->GetReal("params", "minimumVisibleDistance", 350.0);
     m_option.maximumVisibleDistance = reader->GetReal("params", "maximumVisibleDistance", 1200.0);
@@ -228,10 +227,13 @@ bool PerceptionModule::UpdateMap()
                 continue;
             }
             auto &local_map_value = m_local_map.at<uchar>(u, v);
+            auto &global_map_value = m_global_map.at<uchar>(cgv , cgu);
             if (local_map_value == 127)
             {
                 continue;
             }
+
+
 
             if (local_map_value > m_option.pix_thresh)
             {

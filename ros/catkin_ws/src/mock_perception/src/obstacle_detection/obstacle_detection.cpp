@@ -46,9 +46,6 @@ namespace ace
     {
       m_timer->Tic();
 
-      if (option.visualize)
-        cv::cvtColor(map, map, cv::COLOR_GRAY2BGR);
-
       std::vector<OBJECT> objects;
 
       if (!ObjectDetectionWrapper::get().Detect(rgb, objects))
@@ -100,24 +97,12 @@ namespace ace
           v1 = std::min(v1, option.width - 1);
           for (int v = v0; v <= v1; ++v)
           {
-            if (option.visualize)
+            uint8_t &c = map.at<uint8_t>(u, v);
+            if (c == 255)
             {
-              auto &c = map.at<cv::Vec3b>(u, v);
-              if (c[0] == 255 || c[1] == 255 || c[2] == 255)
-              {
-                objectPoints.push_back({u, v});
-                objectUs.push_back(u);
-              }
-            }
-            else
-            {
-              uint8_t &c = map.at<uint8_t>(u, v);
-              if (c == 255)
-              {
-                // c = object.label % 255;
-                objectPoints.push_back({u, v});
-                objectUs.push_back(u);
-              }
+              // c = object.label % 255;
+              objectPoints.push_back({u, v});
+              objectUs.push_back(u);
             }
           }
         }
@@ -148,26 +133,10 @@ namespace ace
           if (point.x > startU || point.x < endU)
             continue;
 
-          if (option.visualize)
-          {
-            map.at<cv::Vec3b>(point.x, point.y) = color;
-          }
-          else
-          {
-            map.at<uint8_t>(point.x, point.y) = object.label + 200;
-          }
-        }
-
-        if (option.visualize)
-        {
-          // cv::line(map, cv::Point(leftV, leftU), cv::Point(rgbOriginV,
-          // rgbOriginU),
-          //          color);
-          // cv::line(map, cv::Point(rightV, rightU),
-          //          cv::Point(rgbOriginV, rgbOriginU), color);
+          map.at<uint8_t>(point.x, point.y) = object.label + 200;
         }
       }
-      
+
       return true;
     }
 
