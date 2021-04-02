@@ -102,6 +102,16 @@ bool PerceptionModule::run()
 
 cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map)
 {
+    float diff_theta = robot_pose.theta - m_last_robot_pose.theta;
+    float diff_time  = robot_pose.timestamp - m_last_robot_pose.timestamp;
+
+    m_last_robot_pose = robot_pose;
+    bool roate_fast_flag = false;
+    if (std::fabs(diff_theta / diff_time) * 1000 > 0.1)
+    {
+        roate_fast_flag = true;
+    }
+
     nav_messages::FusionOccupancyGrid publish_map = FusionOccupancyGrid_clone(slam_map);
     m_tof_x = robot_pose.x;
     m_tof_y = robot_pose.y;
@@ -112,6 +122,12 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
 
     m_tof_x = norm_point[0];
     m_tof_y = norm_point[1];
+
+    if (roate_fast_flag)
+    {
+        std::cout << "@test robot rotate fast" << std::endl;
+        return cv::Mat();
+    }
 
     if (!GetLocalMap(rgb_image, pointCloud))
     {
@@ -187,8 +203,6 @@ bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<E
         // cv::imshow("localmap", temp);
 
         cv::imshow("localmap", m_local_map);
-        cv::waitKey(10);
-
         return true;
     }
     return false;
@@ -227,17 +241,58 @@ bool PerceptionModule::UpdateMap()
                 continue;
             }
             auto &local_map_value = m_local_map.at<uchar>(u, v);
-            auto &global_map_value = m_global_map.at<uchar>(cgv , cgu);
+            auto &global_map_value = m_global_map.at<uchar>(cgv, cgu);
             if (local_map_value == 127)
             {
                 continue;
             }
 
-
-
             if (local_map_value > m_option.pix_thresh)
             {
                 m_obstacle_pts.push_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
+            }
+
+            if (global_map_value == 127)
+            {
+                global_map_value = local_map_value;
+                if (local_map_value > m_option.pix_thresh)
+                {
+                    if (cgu > 0 && m_global_map.at<uchar>(cgv - 1, cgu) < 200)
+                    {
+                        m_global_map.at<uchar>(cgv - 1, cgu) = local_map_value;
+                    }
+                    if (cgv > 0 && m_global_map.at<uchar>(cgv, cgu - 1) < 200)
+                    {
+                        m_global_map.at<uchar>(cgv, cgu - 1) = local_map_value;
+                    }
+                    if (cgu < m_global_map.rows &&
+                        m_global_map.at<uchar>(cgv + 1, cgu) < 200)
+                    {
+                        m_global_map.at<uchar>(cgv + 1, cgu) = local_map_value;
+                    }
+
+                    if (cgv < m_global_map.cols &&
+                        m_global_map.at<uchar>(cgv, cgu + 1) < 200)
+                    {
+                        m_global_map.at<uchar>(cgv, cgu + 1) = local_map_value;
+                    }
+                }
+
+                continue;
+            }
+
+            if (local_map_value == 0)
+            {
+                global_map_value = 0;
+                if (cgv > 0)
+                    m_global_map.at<uchar>(cgv - 1, cgu) = 0;
+                if (cgu > 0)
+                    m_global_map.at<uchar>(cgv, cgu - 1) = 0;
+                if (cgv < m_global_map.rows)
+                    m_global_map.at<uchar>(cgv + 1, cgu) = 0;
+                if (cgu < m_global_map.cols)
+                    m_global_map.at<uchar>(cgv, cgu + 1) = 0;
+                continue;
             }
         }
     }
@@ -284,7 +339,6 @@ bool PerceptionModule::UpdateMap()
             }
 
             cv::resize(global_map_copy, global_map_copy, cv::Size(global_map_width, global_map_height));
-
             cv::imshow("global map", global_map_copy);
         }
     }
@@ -384,12 +438,17 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
     float rate = static_cast<float>(occupacy_grid.info.resolution * 1000 / m_option.resolution);
     int global_height = static_cast<int>(occupacy_grid.info.height * rate);
     int global_width = static_cast<int>(occupacy_grid.info.width * rate);
+
     m_global_map = cv::Mat(global_height, global_width, CV_8UC1, cv::Scalar(127));
 
-    if (m_option.debug)
+    fillLargeMap();
+    int wx, wy;
+    for (auto p : m_obstacle_pts)
     {
-        fillLargeMap();
+        worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
+        m_global_map.at<uchar>(wy, wx) = p.pix_val_;
     }
+
 
     UpdateMap();
 

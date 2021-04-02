@@ -45,7 +45,6 @@ void MockSystem::Run()
             {
                 continue;
             }
-            
             cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
         }
         rate.sleep();
@@ -84,7 +83,6 @@ void MockSystem::handleMapMessage(const nav_msgs::OccupancyGridConstPtr &msg)
 
     std::lock_guard<std::mutex> guard(m_occupancy_grid_mutex);
     convert_rosOccupancyGraid_FusionOccupancyGrid(msg, m_occupancy_grid);
-
     receive_slammap = true;
     return;
 }

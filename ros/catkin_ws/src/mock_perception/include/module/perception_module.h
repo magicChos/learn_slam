@@ -42,7 +42,7 @@ private:
     Eigen::Matrix4d m_base_2_map_matrix;
 
     cv::Mat m_global_map, m_local_map;
-    geometry_messages::Pose2D m_robot_pose;
+    geometry_messages::Pose2D m_robot_pose, m_last_robot_pose;
     nav_messages::FusionOccupancyGrid m_occupancy_grid, m_resize_occupancy_grid;
     std::shared_ptr<ace::perception::ObstacleDetector> m_obstacle_detector;
     std::shared_ptr<ace::sensor::CameraInterface> m_camera;
@@ -54,6 +54,8 @@ private:
 
     float m_tof_x = 0.0;
     float m_tof_y = 0.0;
+
+
 };
 
 
