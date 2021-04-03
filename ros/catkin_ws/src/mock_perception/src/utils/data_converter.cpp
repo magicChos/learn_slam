@@ -6,6 +6,9 @@ bool convert_point_cloud(const pcl::PointCloud<pcl::PointXYZ> &point_cloud, std:
     {
         return false;
     }
+
+    output_point_cloud.clear();
+    std::vector<Eigen::Vector3d>().swap(output_point_cloud);
     
     for (auto it = point_cloud.begin(); it != point_cloud.end(); ++it)
     {

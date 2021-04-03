@@ -103,7 +103,7 @@ bool PerceptionModule::run()
 cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map)
 {
     float diff_theta = robot_pose.theta - m_last_robot_pose.theta;
-    float diff_time  = robot_pose.timestamp - m_last_robot_pose.timestamp;
+    float diff_time = robot_pose.timestamp - m_last_robot_pose.timestamp;
 
     m_last_robot_pose = robot_pose;
     bool roate_fast_flag = false;
@@ -448,7 +448,6 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
         worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
         m_global_map.at<uchar>(wy, wx) = p.pix_val_;
     }
-
 
     UpdateMap();
 

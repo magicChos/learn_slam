@@ -196,11 +196,6 @@ namespace ace
     bool ObstacleDetector::getSingleLevelLocalMap(
         const std::vector<Eigen::Vector3d> &pointCloud, cv::Mat &map)
     {
-      if (pointCloud.size() < 10)
-      {
-        return false;
-      }
-
       const double resolution = option.resolution; // lenght of 1px in mm
       const double resolution_inv = 1 / resolution;
       const int width = option.width;   // horizontal (left/right) resolution
@@ -209,6 +204,12 @@ namespace ace
 
       map = cv::Mat(height, width, CV_32FC1, cv::Scalar(0));
       size_t point_number = pointCloud.size();
+
+      if (point_number < 10)
+      {
+        return false;
+      }
+
 #pragma omp parallel for schedule(dynamic)
       for (size_t i = 0; i < point_number; ++i)
       {
@@ -320,7 +321,6 @@ namespace ace
           }
         }
       }
-
       return true;
     }
 
