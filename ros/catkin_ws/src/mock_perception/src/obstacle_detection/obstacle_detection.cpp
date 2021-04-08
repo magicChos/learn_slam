@@ -210,7 +210,7 @@ namespace ace
         return false;
       }
 
-#pragma omp parallel for schedule(dynamic)
+// #pragma omp parallel for schedule(dynamic)
       for (size_t i = 0; i < point_number; ++i)
       {
         auto &p = pointCloud[i];

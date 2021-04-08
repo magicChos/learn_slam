@@ -23,6 +23,8 @@
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 
+void slamMapToMatInv(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
+
 int64_t GetTimeStamp();
 
 Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R);
