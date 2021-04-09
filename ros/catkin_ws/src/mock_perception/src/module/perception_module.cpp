@@ -181,10 +181,10 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
 
     cv::Mat fusion_map;
     // slamMapToMat(publish_map, fusion_map);
-    slamMapToMatInv(publish_map , fusion_map);
-    cv::flip(fusion_map , fusion_map , 0);
+    slamMapToMatInv(publish_map, fusion_map);
+    cv::flip(fusion_map, fusion_map, 0);
     cv::imshow("fusion_map", fusion_map);
-    cv::waitKey(0);
+    cv::waitKey(10);
 
     return fusion_map;
 }
@@ -252,7 +252,8 @@ bool PerceptionModule::UpdateMap()
 
             if (local_map_value > m_option.pix_thresh)
             {
-                m_obstacle_pts.push_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
+                // m_obstacle_pts.push_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
+                m_obstacle_pts.emplace_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
             }
 
             if (global_map_value == 127)
@@ -327,11 +328,34 @@ bool PerceptionModule::UpdateMap()
                               local_map_resolution),
                 cv::Scalar(255), 1);
             int wx, wy;
-            for (auto p : m_obstacle_pts)
+            // for (auto p : m_obstacle_pts)
+            // {
+            //     worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
+            //     // global_map_copy.at<uchar>(wy, wx) = 255;
+            //     if (global_map_copy.at<uchar>(wy , wx) == 0)
+            //     {
+
+            //     }
+            // }
+
+            std::cout << "@test before obstacle points number is :" << m_obstacle_pts.size() << std::endl;
+
+            for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
             {
-                worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
-                global_map_copy.at<uchar>(wy, wx) = 255;
+                worldToMap(it->pt_x_, it->pt_y_, wx, wy, m_resize_occupancy_grid);
+                if (global_map_copy.at<uchar>(wy, wx) == 0 && global_map_copy.at<uchar>(wy + 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy - 1, wx - 1) == 0 && global_map_copy.at<uchar>(wy, wx + 1) == 0 && global_map_copy.at<uchar>(wy, wx - 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx) == 0 &&
+                    global_map_copy.at<uchar>(wy - 1, wx) == 0 && global_map_copy.at<uchar>(wy - 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx - 1) == 0)
+                {
+                    m_obstacle_pts.erase(it++);
+                }
+                else
+                {
+                    it++;
+                    global_map_copy.at<uchar>(wy, wx) = 255;
+                }
             }
+
+            std::cout << "@test after obstacle points number is : " << m_obstacle_pts.size() << std::endl;
 
             int global_map_height = global_map_copy.rows;
             int global_map_width = global_map_copy.cols;
@@ -343,6 +367,7 @@ bool PerceptionModule::UpdateMap()
 
             cv::resize(global_map_copy, global_map_copy, cv::Size(global_map_width, global_map_height));
             cv::imshow("global map", global_map_copy);
+            std::cout << "@test show global map " << std::endl;
         }
     }
     return true;
@@ -354,23 +379,23 @@ bool PerceptionModule::fusion_stragty_resize(nav_messages::FusionOccupancyGrid &
     int wx, wy;
     m_current_timeStamp = GetTimeStamp();
 
-    while (m_obstacle_pts.size() > 0)
+    for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
     {
-        auto pt = m_obstacle_pts.front();
-        if (m_current_timeStamp - pt.time_stamp > m_option.elapse_time)
+        if (m_current_timeStamp - it->time_stamp > m_option.elapse_time)
         {
-            m_obstacle_pts.pop_front();
-            worldToMap(pt.pt_x_, pt.pt_y_, wx, wy, fusion_occupancy_grid);
+            worldToMap(it->pt_x_, it->pt_y_, wx, wy, fusion_occupancy_grid);
             int newIndex = wx + fusion_occupancy_grid.info.width * wy;
             if (newIndex >= data_size)
             {
                 continue;
             }
             fusion_occupancy_grid.data[newIndex] = 0;
+
+            m_obstacle_pts.erase(it++);
         }
         else
         {
-            break;
+            it++;
         }
     }
 
@@ -421,7 +446,7 @@ bool PerceptionModule::fusion_stragety_recall(const nav_messages::FusionOccupanc
         int small_col = static_cast<int>(col / rate);
 
         int newIndex = small_row * fusion_occupancy_grid_small.info.width + small_col;
-        
+
         if (fusion_occupancy_grid.data[i] >= 100)
         {
             fusion_occupancy_grid_small.data[newIndex] = fusion_occupancy_grid.data[i];
@@ -460,6 +485,7 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
 
     UpdateMap();
 
+    std::cout << "@test updateGlobalmap here! " << std::endl;
     return true;
 }
 

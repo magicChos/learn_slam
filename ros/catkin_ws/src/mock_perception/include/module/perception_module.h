@@ -49,7 +49,8 @@ private:
 
     ace::perception::ObstacleDetectOption m_option;
 
-    std::deque<ObstaclePoint> m_obstacle_pts;
+    // std::deque<ObstaclePoint> m_obstacle_pts;
+    std::list<ObstaclePoint> m_obstacle_pts;
     int64_t m_current_timeStamp;
 
     float m_tof_x = 0.0;
