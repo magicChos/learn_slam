@@ -35,7 +35,7 @@ void slamMapToMatInv(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_
             }
             else if (map_data[idx_map_y + x] < 60)
             {
-                map_cv.data[idx] = 255;
+                map_cv.data[idx] = 0;
             }
             else
             {
@@ -44,6 +44,7 @@ void slamMapToMatInv(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_
         }
     }
 }
+
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv)
 {

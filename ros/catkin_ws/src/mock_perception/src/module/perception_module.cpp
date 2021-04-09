@@ -177,11 +177,14 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
         }
         cv::resize(flip_fusion_mat, flip_fusion_mat, cv::Size(flip_fusion_mat_width, flip_fusion_mat_height));
         cv::imshow("flip_fusion_mat", flip_fusion_mat);
-        cv::waitKey(100);
     }
 
     cv::Mat fusion_map;
-    slamMapToMat(publish_map, fusion_map);
+    // slamMapToMat(publish_map, fusion_map);
+    slamMapToMatInv(publish_map , fusion_map);
+    cv::flip(fusion_map , fusion_map , 0);
+    cv::imshow("fusion_map", fusion_map);
+    cv::waitKey(0);
 
     return fusion_map;
 }
@@ -403,9 +406,11 @@ bool PerceptionModule::fusion_stragety_recall(const nav_messages::FusionOccupanc
     int slam_resize_map_width = fusion_occupancy_grid.info.width;
 
     float rate = fusion_occupancy_grid_small.info.resolution / fusion_occupancy_grid.info.resolution;
+
+    std::set<int> m_set;
     for (int i = 0; i < data_size; ++i)
     {
-        if (fusion_occupancy_grid.data[i] == -1)
+        if (fusion_occupancy_grid.data[i] < 100)
         {
             continue;
         }
@@ -416,7 +421,11 @@ bool PerceptionModule::fusion_stragety_recall(const nav_messages::FusionOccupanc
         int small_col = static_cast<int>(col / rate);
 
         int newIndex = small_row * fusion_occupancy_grid_small.info.width + small_col;
-        fusion_occupancy_grid_small.data[newIndex] = fusion_occupancy_grid.data[i];
+        
+        if (fusion_occupancy_grid.data[i] >= 100)
+        {
+            fusion_occupancy_grid_small.data[newIndex] = fusion_occupancy_grid.data[i];
+        }
     }
 
     return true;
