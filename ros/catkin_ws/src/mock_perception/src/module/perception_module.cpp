@@ -327,24 +327,15 @@ bool PerceptionModule::UpdateMap()
                            m_occupancy_grid.info.origin.position.y) /
                               local_map_resolution),
                 cv::Scalar(255), 1);
+
             int wx, wy;
-            // for (auto p : m_obstacle_pts)
-            // {
-            //     worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
-            //     // global_map_copy.at<uchar>(wy, wx) = 255;
-            //     if (global_map_copy.at<uchar>(wy , wx) == 0)
-            //     {
-
-            //     }
-            // }
-
             std::cout << "@test before obstacle points number is :" << m_obstacle_pts.size() << std::endl;
-
             for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
             {
                 worldToMap(it->pt_x_, it->pt_y_, wx, wy, m_resize_occupancy_grid);
-                if (global_map_copy.at<uchar>(wy, wx) == 0 && global_map_copy.at<uchar>(wy + 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy - 1, wx - 1) == 0 && global_map_copy.at<uchar>(wy, wx + 1) == 0 && global_map_copy.at<uchar>(wy, wx - 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx) == 0 &&
-                    global_map_copy.at<uchar>(wy - 1, wx) == 0 && global_map_copy.at<uchar>(wy - 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx - 1) == 0)
+                // if (global_map_copy.at<uchar>(wy, wx) == 0 && global_map_copy.at<uchar>(wy + 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy - 1, wx - 1) == 0 && global_map_copy.at<uchar>(wy, wx + 1) == 0 && global_map_copy.at<uchar>(wy, wx - 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx) == 0 &&
+                //     global_map_copy.at<uchar>(wy - 1, wx) == 0 && global_map_copy.at<uchar>(wy - 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx - 1) == 0)
+                if (globalMapUpdateCondition(global_map_copy, wx, wy))
                 {
                     m_obstacle_pts.erase(it++);
                 }
@@ -492,4 +483,15 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
 bool PerceptionModule::fusion_process(cv::Mat &fusion_map)
 {
     return true;
+}
+
+bool PerceptionModule::globalMapUpdateCondition(const cv::Mat &global_map_img, const int wx, const int wy)
+{
+    if (global_map_img.at<uchar>(wy, wx) == 0 && global_map_img.at<uchar>(wy + 1, wx) == 0 && global_map_img.at<uchar>(wy + 2, wx) == 0 &&
+        global_map_img.at<uchar>(wy - 1, wx) == 0 && global_map_img.at<uchar>(wy - 2, wx) == 0)
+    {
+        return true;
+    }
+
+    return false;
 }

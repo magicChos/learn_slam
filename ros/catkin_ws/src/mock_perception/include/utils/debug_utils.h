@@ -38,4 +38,7 @@ bool pixelCluster(cv::Mat &img, std::map<uchar, cv::Rect> &cluster_result);
 
 cv::Rect getRect(const std::vector<cv::Point> &points);
 
+// 获取图像的模糊量
+double blurValue(cv::Mat &img);
+
 

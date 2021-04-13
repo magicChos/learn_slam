@@ -45,7 +45,6 @@ void slamMapToMatInv(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_
     }
 }
 
-
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv)
 {
     int size_x = map.info.width;
@@ -183,4 +182,18 @@ cv::Rect getRect(const std::vector<cv::Point> &points)
     }
 
     return cv::Rect(cv::Point2i(xmin, ymin), cv::Point2i(xmax + 1, ymax + 1));
+}
+
+double blurValue(cv::Mat &img)
+{
+    cv::Mat imageGrey;
+    cv::cvtColor(img, imageGrey, cv::COLOR_RGB2GRAY);
+    cv::Mat imageSobel;
+    cv::Laplacian(imageGrey, imageSobel, CV_64F);
+    cv::Scalar mean;
+    cv::Scalar stddev;
+    cv::meanStdDev(imageSobel, mean, stddev);
+    double meanValue = std::pow(stddev.val[0], 2);
+
+    return meanValue;
 }

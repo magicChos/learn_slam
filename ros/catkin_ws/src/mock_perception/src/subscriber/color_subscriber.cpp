@@ -6,6 +6,7 @@
 #include <image_transport/image_transport.h>
 #include <opencv2/opencv.hpp>
 #include <thread>
+#include "utils/debug_utils.h"
 
 ColorSubscriber::ColorSubscriber(ros::NodeHandle &nh, const std::string &topic_name, size_t buff_size)
     : nh_(nh)
@@ -33,6 +34,9 @@ void ColorSubscriber::msg_callback(const sensor_msgs::Image::ConstPtr &color_msg
     try
     {
         cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(color_msg_ptr, sensor_msgs::image_encodings::BGR8);
+        double meanValue = blurValue(cv_ptr->image);
+        std::cout << "@test meanValue: " << meanValue << std::endl;
+
         ImageData data;
         data.image = cv_ptr->image;
         data.timestamp = color_msg_ptr->header.stamp.toNSec() * 0.000001;
