@@ -30,9 +30,10 @@ namespace ace
 
             if (option.detectObjects)
             {
-                cv::imshow("temp localmap", localmap);
                 return detectObjects(localmap, rgb_image);
             }
+
+            cv::flip(localmap, localmap, 1);
 
             return true;
         }

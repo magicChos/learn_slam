@@ -116,6 +116,16 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
     m_tof_x = robot_pose.x;
     m_tof_y = robot_pose.y;
 
+    float cos_theta = std::cos(robot_pose.theta);
+    float sin_theta = std::sin(robot_pose.theta);
+
+    m_base_2_map_matrix(0, 0) = cos_theta;
+    m_base_2_map_matrix(0, 1) = -sin_theta;
+    m_base_2_map_matrix(0, 3) = robot_pose.x;
+    m_base_2_map_matrix(1, 0) = sin_theta;
+    m_base_2_map_matrix(1, 1) = cos_theta;
+    m_base_2_map_matrix(1, 3) = robot_pose.y;
+
     Eigen::Vector4d tof_in_map_coord =
         m_base_2_map_matrix * m_tof_2_base_matrix * Eigen::Vector4d(0, 0, 0, 1);
     Eigen::Vector3d norm_point = tof_in_map_coord.head<3>() / tof_in_map_coord(3);
@@ -223,7 +233,8 @@ bool PerceptionModule::UpdateMap()
     float sin_theta = std::sin(m_robot_pose.theta);
     float cos_theta = std::cos(m_robot_pose.theta);
 
-    cv::flip(m_local_map, m_local_map, 1);
+    std::cout << "@test tof_x: " << tof_x << " , tof_y: " << tof_y << std::endl;
+    std::cout << "@test  theta: " << m_robot_pose.theta << std::endl;
     int64_t time_stamp = GetTimeStamp();
 
 #pragma omp parallel for schedule(dynamic)
@@ -252,7 +263,6 @@ bool PerceptionModule::UpdateMap()
 
             if (local_map_value > m_option.pix_thresh)
             {
-                // m_obstacle_pts.push_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
                 m_obstacle_pts.emplace_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
             }
 
@@ -333,8 +343,6 @@ bool PerceptionModule::UpdateMap()
             for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
             {
                 worldToMap(it->pt_x_, it->pt_y_, wx, wy, m_resize_occupancy_grid);
-                // if (global_map_copy.at<uchar>(wy, wx) == 0 && global_map_copy.at<uchar>(wy + 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy - 1, wx - 1) == 0 && global_map_copy.at<uchar>(wy, wx + 1) == 0 && global_map_copy.at<uchar>(wy, wx - 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx) == 0 &&
-                //     global_map_copy.at<uchar>(wy - 1, wx) == 0 && global_map_copy.at<uchar>(wy - 1, wx + 1) == 0 && global_map_copy.at<uchar>(wy + 1, wx - 1) == 0)
                 if (globalMapUpdateCondition(global_map_copy, wx, wy))
                 {
                     m_obstacle_pts.erase(it++);
@@ -449,16 +457,6 @@ bool PerceptionModule::fusion_stragety_recall(const nav_messages::FusionOccupanc
 
 bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &occupacy_grid)
 {
-    float cos_theta = std::cos(robot_pose.theta);
-    float sin_theta = std::sin(robot_pose.theta);
-
-    m_base_2_map_matrix(0, 0) = cos_theta;
-    m_base_2_map_matrix(0, 1) = -sin_theta;
-    m_base_2_map_matrix(0, 3) = robot_pose.x;
-    m_base_2_map_matrix(1, 0) = sin_theta;
-    m_base_2_map_matrix(1, 1) = cos_theta;
-    m_base_2_map_matrix(1, 3) = robot_pose.y;
-
     m_occupancy_grid = FusionOccupancyGrid_clone(occupacy_grid);
     float rate = static_cast<float>(occupacy_grid.info.resolution * 1000 / m_option.resolution);
     int global_height = static_cast<int>(occupacy_grid.info.height * rate);
