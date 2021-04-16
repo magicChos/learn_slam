@@ -27,7 +27,6 @@ void MockSystem::Run()
 {
     m_tof_listener->LookupData(m_tof_base_matrix);
     
-    // m_module->setTofBaseMatrix(m_tof_base_matrix);
     ros::Rate rate(10);
     while (ros::ok())
     {
@@ -39,7 +38,7 @@ void MockSystem::Run()
         }
         read_data();
 
-        while (has_data())
+        while (has_data() )
         {
             if (!check_data())
             {
