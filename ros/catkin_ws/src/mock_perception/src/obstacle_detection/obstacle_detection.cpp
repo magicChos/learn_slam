@@ -38,13 +38,13 @@ namespace ace
             return true;
         }
 
-        bool ObjectDetectionWrapper::Detect(cv::Mat image,
+        bool ObjectDetectionWrapper::Detect(const cv::Mat &image,
                                             std::vector<OBJECT> &objects)
         {
             return sric_detection_process(image, objects) >= 0;
         }
 
-        bool ObstacleDetector::detectObjects(cv::Mat &map, const cv::Mat rgb)
+        bool ObstacleDetector::detectObjects(cv::Mat &map, const cv::Mat &rgb)
         {
             m_timer->Tic();
 

@@ -31,7 +31,7 @@ namespace ace
 
             ObjectDetectionWrapper(ObjectDetectionWrapper const &) = delete;
             void operator=(ObjectDetectionWrapper const &) = delete;
-            bool Detect(cv::Mat image, std::vector<OBJECT> &objects);
+            bool Detect(const cv::Mat &image, std::vector<OBJECT> &objects);
 
         private:
             ObjectDetectionWrapper()
@@ -79,7 +79,7 @@ namespace ace
             bool GetLocalMap(uint8_t *map);
 
         private:
-            bool detectObjects(cv::Mat &map, const cv::Mat rgb);
+            bool detectObjects(cv::Mat &map, const cv::Mat &rgb);
             bool getThreeLevelLocalMap(const std::vector<Eigen::Vector3d> &pointCloud,
                                        cv::Mat &map);
 

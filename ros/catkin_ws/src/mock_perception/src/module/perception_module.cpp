@@ -266,46 +266,68 @@ bool PerceptionModule::UpdateMap()
                 m_obstacle_pts.emplace_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
             }
 
+            // if (global_map_value == 127)
+            // {
+            //     global_map_value = local_map_value;
+            //     if (local_map_value > m_option.pix_thresh)
+            //     {
+            //         if (cgu > 0 && m_global_map.at<uchar>(cgv - 1, cgu) < 200)
+            //         {
+            //             m_global_map.at<uchar>(cgv - 1, cgu) = local_map_value;
+            //         }
+            //         if (cgv > 0 && m_global_map.at<uchar>(cgv, cgu - 1) < 200)
+            //         {
+            //             m_global_map.at<uchar>(cgv, cgu - 1) = local_map_value;
+            //         }
+            //         if (cgu < m_global_map.rows &&
+            //             m_global_map.at<uchar>(cgv + 1, cgu) < 200)
+            //         {
+            //             m_global_map.at<uchar>(cgv + 1, cgu) = local_map_value;
+            //         }
+
+            //         if (cgv < m_global_map.cols &&
+            //             m_global_map.at<uchar>(cgv, cgu + 1) < 200)
+            //         {
+            //             m_global_map.at<uchar>(cgv, cgu + 1) = local_map_value;
+            //         }
+            //     }
+
+            //     continue;
+            // }
+
+            // if (local_map_value == 0)
+            // {
+            //     global_map_value = 0;
+            //     if (cgv > 0)
+            //         m_global_map.at<uchar>(cgv - 1, cgu) = 0;
+            //     if (cgu > 0)
+            //         m_global_map.at<uchar>(cgv, cgu - 1) = 0;
+            //     if (cgv < m_global_map.rows)
+            //         m_global_map.at<uchar>(cgv + 1, cgu) = 0;
+            //     if (cgu < m_global_map.cols)
+            //         m_global_map.at<uchar>(cgv, cgu + 1) = 0;
+            //     continue;
+            // }
+
             if (global_map_value == 127)
             {
                 global_map_value = local_map_value;
                 if (local_map_value > m_option.pix_thresh)
                 {
-                    if (cgu > 0 && m_global_map.at<uchar>(cgv - 1, cgu) < 200)
-                    {
-                        m_global_map.at<uchar>(cgv - 1, cgu) = local_map_value;
-                    }
-                    if (cgv > 0 && m_global_map.at<uchar>(cgv, cgu - 1) < 200)
-                    {
-                        m_global_map.at<uchar>(cgv, cgu - 1) = local_map_value;
-                    }
-                    if (cgu < m_global_map.rows &&
-                        m_global_map.at<uchar>(cgv + 1, cgu) < 200)
-                    {
-                        m_global_map.at<uchar>(cgv + 1, cgu) = local_map_value;
-                    }
-
-                    if (cgv < m_global_map.cols &&
-                        m_global_map.at<uchar>(cgv, cgu + 1) < 200)
-                    {
-                        m_global_map.at<uchar>(cgv, cgu + 1) = local_map_value;
-                    }
+                    m_global_map.at<uchar>(cgv, cgu) = local_map_value;
                 }
 
                 continue;
+            }
+            else if (global_map_value == 0)
+            {
+                global_map_value = local_map_value;
             }
 
             if (local_map_value == 0)
             {
                 global_map_value = 0;
-                if (cgv > 0)
-                    m_global_map.at<uchar>(cgv - 1, cgu) = 0;
-                if (cgu > 0)
-                    m_global_map.at<uchar>(cgv, cgu - 1) = 0;
-                if (cgv < m_global_map.rows)
-                    m_global_map.at<uchar>(cgv + 1, cgu) = 0;
-                if (cgu < m_global_map.cols)
-                    m_global_map.at<uchar>(cgv, cgu + 1) = 0;
+
                 continue;
             }
         }
@@ -380,44 +402,38 @@ bool PerceptionModule::fusion_stragty_resize(nav_messages::FusionOccupancyGrid &
 
     for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
     {
+        worldToMap(it->pt_x_, it->pt_y_, wx, wy, fusion_occupancy_grid);
+        int newIndex = wx + fusion_occupancy_grid.info.width * wy;
+        if (newIndex >= data_size)
+        {
+            m_obstacle_pts.erase(it++);
+            continue;
+        }
+
         if (m_current_timeStamp - it->time_stamp > m_option.elapse_time)
         {
-            worldToMap(it->pt_x_, it->pt_y_, wx, wy, fusion_occupancy_grid);
-            int newIndex = wx + fusion_occupancy_grid.info.width * wy;
-            if (newIndex >= data_size)
-            {
-                continue;
-            }
             fusion_occupancy_grid.data[newIndex] = 0;
-
             m_obstacle_pts.erase(it++);
         }
-        else
+        else if (it->pix_val_ > m_option.pix_thresh)
         {
-            it++;
-        }
-    }
-
-    for (auto &p : m_obstacle_pts)
-    {
-        worldToMap(p.pt_x_, p.pt_y_, wx, wy, fusion_occupancy_grid);
-        if (p.pix_val_ > m_option.pix_thresh)
-        {
-            int newIndex = wx + fusion_occupancy_grid.info.width * wy;
-            if (newIndex >= data_size)
+            if (fusion_occupancy_grid.data[newIndex] >= 100)
             {
-                continue;
+                m_obstacle_pts.erase(it++);
             }
 
-            // 未知障碍牄1�7
-            if (p.pix_val_ == 255)
+            if (it->pix_val_ == 255)
             {
                 fusion_occupancy_grid.data[newIndex] = 100;
             }
             else
             {
-                fusion_occupancy_grid.data[newIndex] = p.pix_val_ - 100;
+                fusion_occupancy_grid.data[newIndex] = it->pix_val_ - 100;
             }
+        }
+        else
+        {
+            it++;
         }
     }
 

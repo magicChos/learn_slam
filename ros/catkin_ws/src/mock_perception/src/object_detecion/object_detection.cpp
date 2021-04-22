@@ -49,7 +49,7 @@ namespace ace
       handle = 0;
     }
 
-    int sric_detection_process(cv::Mat img, std::vector<OBJECT> &objects)
+    int sric_detection_process(const cv::Mat &img, std::vector<OBJECT> &objects)
     {
       if (img.empty())
       {
