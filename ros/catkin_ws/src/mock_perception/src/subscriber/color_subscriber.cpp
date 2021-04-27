@@ -35,7 +35,6 @@ void ColorSubscriber::msg_callback(const sensor_msgs::Image::ConstPtr &color_msg
     {
         cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(color_msg_ptr, sensor_msgs::image_encodings::BGR8);
         double meanValue = blurValue(cv_ptr->image);
-        std::cout << "@test meanValue: " << meanValue << std::endl;
 
         ImageData data;
         data.image = cv_ptr->image;

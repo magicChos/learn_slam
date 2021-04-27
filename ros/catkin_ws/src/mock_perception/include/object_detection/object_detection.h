@@ -18,6 +18,6 @@ namespace ace
     // };
     int sric_detection_init(const std::string &model_path);
     void sric_detection_release(void);
-    int sric_detection_process(cv::Mat img, std::vector<OBJECT> &objects);
+    int sric_detection_process(const cv::Mat &img, std::vector<OBJECT> &objects);
   } // namespace perception
 } // namespace ace
