@@ -233,8 +233,6 @@ bool PerceptionModule::UpdateMap()
     float sin_theta = std::sin(m_robot_pose.theta);
     float cos_theta = std::cos(m_robot_pose.theta);
 
-    std::cout << "@test tof_x: " << tof_x << " , tof_y: " << tof_y << std::endl;
-    std::cout << "@test  theta: " << m_robot_pose.theta << std::endl;
     int64_t time_stamp = GetTimeStamp();
 
 #pragma omp parallel for schedule(dynamic)
@@ -361,7 +359,6 @@ bool PerceptionModule::UpdateMap()
                 cv::Scalar(255), 1);
 
             int wx, wy;
-            std::cout << "@test before obstacle points number is :" << m_obstacle_pts.size() << std::endl;
             for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
             {
                 worldToMap(it->pt_x_, it->pt_y_, wx, wy, m_resize_occupancy_grid);
@@ -376,8 +373,6 @@ bool PerceptionModule::UpdateMap()
                 }
             }
 
-            std::cout << "@test after obstacle points number is : " << m_obstacle_pts.size() << std::endl;
-
             int global_map_height = global_map_copy.rows;
             int global_map_width = global_map_copy.cols;
             while (global_map_height >= 1000 || global_map_width >= 1000)
@@ -388,7 +383,7 @@ bool PerceptionModule::UpdateMap()
 
             cv::resize(global_map_copy, global_map_copy, cv::Size(global_map_width, global_map_height));
             cv::imshow("global map", global_map_copy);
-            std::cout << "@test show global map " << std::endl;
+
         }
     }
     return true;
@@ -489,8 +484,6 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
     }
 
     UpdateMap();
-
-    std::cout << "@test updateGlobalmap here! " << std::endl;
     return true;
 }
 
