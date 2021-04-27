@@ -40,6 +40,8 @@ private:
 
     bool globalMapUpdateCondition(const cv::Mat &global_map_img, const int wx, const int wy);
 
+    bool obstaclePointsFilter();
+
 private:
     Eigen::Matrix4d m_tof_2_base_matrix;
     Eigen::Matrix4d m_base_2_map_matrix;
@@ -59,4 +61,6 @@ private:
     float m_tof_x = 0.0;
     float m_tof_y = 0.0;
 };
+
+
 

@@ -30,7 +30,6 @@ namespace ace
                 return false;
             }
             timer_obj->Toc();
-            std::cout << "@test getSingleLevelLocalMap cost time: " << timer_obj->Elasped() << std::endl;
 
             if (option.detectObjects)
             {
@@ -61,7 +60,6 @@ namespace ace
                 return false;
             }
             timer_obj->Toc();
-            std::cout << "@test detect cost time: " << timer_obj->Elasped() << std::endl;
 
             if (option.debug)
             {

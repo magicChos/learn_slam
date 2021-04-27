@@ -148,14 +148,16 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
     m_robot_pose = robot_pose;
     updateGlobalMap(robot_pose, slam_map);
 
-
     std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
     timer_obj->Tic();
     timer_obj->Toc();
     nav_messages::FusionOccupancyGrid fusion_occupancy_resize_map = FusionOccupancyGrid_clone(m_resize_occupancy_grid);
+
+    std::cout << "@test before obs points : " << m_obstacle_pts.size() << std::endl;
     fusion_stragty_resize(fusion_occupancy_resize_map);
+    std::cout << "@test after obs points: " << m_obstacle_pts.size() << std::endl;
+
     fusion_stragety_recall(fusion_occupancy_resize_map, publish_map);
-    std::cout << "@test fusion cost time: " << timer_obj->Elasped() << std::endl;
 
     if (m_option.debug)
     {
@@ -224,6 +226,24 @@ bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<E
         return true;
     }
     return false;
+}
+
+bool PerceptionModule::obstaclePointsFilter()
+{
+    int wx, wy;
+    for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
+    {
+        worldToMap(it->pt_x_, it->pt_y_, wx, wy, m_resize_occupancy_grid);
+        if (globalMapUpdateCondition(m_global_map, wx, wy))
+        {
+            m_obstacle_pts.erase(it++);
+        }
+        else
+        {
+            it++;
+        }
+    }
+    return true;
 }
 
 bool PerceptionModule::UpdateMap()
@@ -335,7 +355,9 @@ bool PerceptionModule::UpdateMap()
             }
         }
     }
-
+    std::cout << "@test obstacle points : " << m_obstacle_pts.size() << std::endl;
+    obstaclePointsFilter();
+    std::cout << "@test after filter obstacle points: " << m_obstacle_pts.size() << std::endl;
     if (m_option.debug)
     {
         if (m_global_map.rows > 0 && m_global_map.cols > 0)
@@ -367,15 +389,8 @@ bool PerceptionModule::UpdateMap()
             for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
             {
                 worldToMap(it->pt_x_, it->pt_y_, wx, wy, m_resize_occupancy_grid);
-                if (globalMapUpdateCondition(global_map_copy, wx, wy))
-                {
-                    m_obstacle_pts.erase(it++);
-                }
-                else
-                {
-                    it++;
-                    global_map_copy.at<uchar>(wy, wx) = 255;
-                }
+                it++;
+                global_map_copy.at<uchar>(wy, wx) = 255;
             }
 
             int global_map_height = global_map_copy.rows;
@@ -405,29 +420,36 @@ bool PerceptionModule::fusion_stragty_resize(nav_messages::FusionOccupancyGrid &
         int newIndex = wx + fusion_occupancy_grid.info.width * wy;
         if (newIndex >= data_size)
         {
+            std::cout << "@test 索引越界删除障碍物点" << std::endl;
             m_obstacle_pts.erase(it++);
             continue;
         }
 
         if (m_current_timeStamp - it->time_stamp > m_option.elapse_time)
         {
+            std::cout << "@test 时间戳更新删除障碍物点" << std::endl;
             fusion_occupancy_grid.data[newIndex] = 0;
             m_obstacle_pts.erase(it++);
         }
-        else if (it->pix_val_ > m_option.pix_thresh)
+
+        if (it->pix_val_ > m_option.pix_thresh)
         {
             if (fusion_occupancy_grid.data[newIndex] >= 100)
             {
                 m_obstacle_pts.erase(it++);
             }
-
-            if (it->pix_val_ == 255)
-            {
-                fusion_occupancy_grid.data[newIndex] = 100;
-            }
             else
             {
-                fusion_occupancy_grid.data[newIndex] = it->pix_val_ - 100;
+                if (it->pix_val_ == 255)
+                {
+                    fusion_occupancy_grid.data[newIndex] = 100;
+                }
+                else
+                {
+                    fusion_occupancy_grid.data[newIndex] = it->pix_val_ - 100;
+                }
+
+                ++it;
             }
         }
         else
@@ -486,12 +508,8 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
         worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
         m_global_map.at<uchar>(wy, wx) = p.pix_val_;
     }
-    std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
-    timer_obj->Tic();
-    timer_obj->Toc();
+
     UpdateMap();
-    
-    std::cout << "@test UpdateMap cost time: " << timer_obj->Elasped() << std::endl;
     return true;
 }
 
