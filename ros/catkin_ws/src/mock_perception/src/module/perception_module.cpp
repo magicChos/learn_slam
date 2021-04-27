@@ -148,9 +148,14 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
     m_robot_pose = robot_pose;
     updateGlobalMap(robot_pose, slam_map);
 
+
+    std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
+    timer_obj->Tic();
+    timer_obj->Toc();
     nav_messages::FusionOccupancyGrid fusion_occupancy_resize_map = FusionOccupancyGrid_clone(m_resize_occupancy_grid);
     fusion_stragty_resize(fusion_occupancy_resize_map);
     fusion_stragety_recall(fusion_occupancy_resize_map, publish_map);
+    std::cout << "@test fusion cost time: " << timer_obj->Elasped() << std::endl;
 
     if (m_option.debug)
     {
@@ -383,7 +388,6 @@ bool PerceptionModule::UpdateMap()
 
             cv::resize(global_map_copy, global_map_copy, cv::Size(global_map_width, global_map_height));
             cv::imshow("global map", global_map_copy);
-
         }
     }
     return true;
@@ -482,8 +486,12 @@ bool PerceptionModule::updateGlobalMap(const geometry_messages::Pose2D &robot_po
         worldToMap(p.pt_x_, p.pt_y_, wx, wy, m_resize_occupancy_grid);
         m_global_map.at<uchar>(wy, wx) = p.pix_val_;
     }
-
+    std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
+    timer_obj->Tic();
+    timer_obj->Toc();
     UpdateMap();
+    
+    std::cout << "@test UpdateMap cost time: " << timer_obj->Elasped() << std::endl;
     return true;
 }
 

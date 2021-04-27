@@ -21,12 +21,16 @@ namespace ace
 
         bool ObstacleDetector::GenerateLocalMap(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, cv::Mat &localmap)
         {
+            std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
+            timer_obj->Tic();
             bool success = getSingleLevelLocalMap(pointCloud, localmap);
             if (!success)
             {
                 LogError("generate local map failture");
                 return false;
             }
+            timer_obj->Toc();
+            std::cout << "@test getSingleLevelLocalMap cost time: " << timer_obj->Elasped() << std::endl;
 
             if (option.detectObjects)
             {
@@ -46,8 +50,9 @@ namespace ace
 
         bool ObstacleDetector::detectObjects(cv::Mat &map, const cv::Mat &rgb)
         {
-            m_timer->Tic();
 
+            std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
+            timer_obj->Tic();
             std::vector<OBJECT> objects;
 
             if (!ObjectDetectionWrapper::get().Detect(rgb, objects))
@@ -55,6 +60,8 @@ namespace ace
                 LogError("Object detection failed");
                 return false;
             }
+            timer_obj->Toc();
+            std::cout << "@test detect cost time: " << timer_obj->Elasped() << std::endl;
 
             if (option.debug)
             {
@@ -203,8 +210,10 @@ namespace ace
             const int width = option.width;   // horizontal (left/right) resolution
             const int height = option.height; // vertical (forward) resolution
             const double measureDistance_inv = 1 / 100.0;
+            const int width_half = width / 2;
 
             map = cv::Mat(height, width, CV_32FC1, cv::Scalar(0));
+            int map_width_half = map.cols / 2;
             size_t point_number = pointCloud.size();
 
             if (point_number < 10)
@@ -221,7 +230,7 @@ namespace ace
                     continue;
                 }
 
-                int leftV = int(p.x() * resolution_inv) + (width / 2),
+                int leftV = int(p.x() * resolution_inv) + width_half,
                     rightU = height - int(p.y() * resolution_inv);
 
                 if (rightU < 0 || rightU >= height || leftV < 0 || leftV >= width)
@@ -246,20 +255,23 @@ namespace ace
             cv::Mat mapMask = cv::Mat(height, width, CV_8UC1, cv::Scalar(0));
             cv::Mat unknownMask = cv::Mat(height, width, CV_8UC1, cv::Scalar(255));
             const int step = 400;
+            const double step_inv = 1.0 / 400;
 
-            // int boundary = map.cols / 2 / std::atan(option.hfov / 2);
             int boundary = map.cols / 2 / std::tan(option.hfov / 2);
-#pragma omp parallel for schedule(dynamic)
-            for (int i = boundary; i < 2 * map.rows + map.cols - 2 - boundary; ++i)
+            int uo = map.rows - 1, vo = map_width_half;
+            int rows_add_cols = map.rows + map.cols;
+            int boundary_thresh = 2 * map.rows + map.cols - 2 - boundary;
+            int u, v;
+            bool foundBlock = false;
+
+            for (int i = boundary; i < boundary_thresh; ++i)
             {
-                int u, v;
-                int uo = map.rows - 1, vo = map.cols / 2;
                 if (i < map.rows)
                 {
                     u = map.rows - 1 - i;
                     v = 0;
                 }
-                else if (i < map.rows + map.cols - 1)
+                else if (i < rows_add_cols - 1)
                 {
                     u = 0;
                     v = i - map.rows + 1;
@@ -269,10 +281,9 @@ namespace ace
                     u = i - map.rows - map.cols + 1;
                     v = map.cols - 1;
                 }
-                double du = double(u - uo) / step, dv = double(v - vo) / step;
+                double du = double(u - uo) * step_inv, dv = double(v - vo) * step_inv;
 
-                bool foundBlock = false;
-
+                foundBlock = false;
                 for (int s = 1; s <= step; s++)
                 {
                     int uc = du * s + uo, vc = dv * s + vo;
@@ -280,7 +291,7 @@ namespace ace
                     if (foundBlock)
                         continue;
                     double dist = std::sqrt((map.rows - 1 - uc) * (map.rows - 1 - uc) +
-                                            (map.cols / 2 - vc) * (map.cols / 2 - vc)) *
+                                            (map_width_half - vc) * (map_width_half - vc)) *
                                   option.resolution;
                     if (dist >= option.minimumVisibleDistance &&
                         dist <= option.maximumVisibleDistance)
@@ -300,35 +311,30 @@ namespace ace
                 }
             }
 
-#pragma omp parallel for schedule(dynamic)
-            for (int u = 0; u < map.rows; ++u)
+            int size = map.rows * map.cols;
+            for (int i = 0; i < size; ++i)
             {
-                for (int v = 0; v < map.cols; ++v)
+                if (mapMask.at<uint8_t>(i) == 0)
                 {
-                    if (mapMask.at<uint8_t>(u, v) == 0)
-                    {
-                        map.at<uchar>(u, v) = 0;
-                    }
+                    map.at<uchar>(i) = 0;
                 }
             }
             cv::morphologyEx(map, map, cv::MORPH_CLOSE, kernel);
 
-#pragma omp parallel for schedule(dynamic)
-            for (int u = 0; u < map.rows; ++u)
+            for (int i = 0; i < size; ++i)
             {
-                uchar *p = map.ptr<uchar>(u);
-                for (int v = 0; v < map.cols; ++v)
+                auto &v = map.at<uchar>(i);
+                if (unknownMask.at<uint8_t>(i) == 255)
                 {
-                    if (unknownMask.at<uint8_t>(u, v) == 255)
-                    {
-                        map.at<uchar>(u, v) = 127;
-                    }
-                    if (p[v] >= 200)
-                    {
-                        p[v] = 255;
-                    }
+                    v = 127;
+                }
+
+                if (v >= 200)
+                {
+                    v = 255;
                 }
             }
+
             return true;
         }
 
