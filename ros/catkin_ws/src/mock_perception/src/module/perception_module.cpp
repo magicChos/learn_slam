@@ -162,14 +162,14 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
     if (m_option.debug)
     {
         cv::Mat fusion_mat;
-        slamMapToMat(fusion_occupancy_resize_map, fusion_mat);
+        slamMapToMatColor(fusion_occupancy_resize_map , fusion_mat);
         cv::Mat flip_fusion_mat = fusion_mat.clone();
         cv::flip(flip_fusion_mat, flip_fusion_mat, 0);
 
         int wx, wy;
         worldToMap(m_robot_pose.x, m_robot_pose.y, wx, wy,
                    fusion_occupancy_resize_map);
-        cv::circle(flip_fusion_mat, cv::Point(wx, wy), 3, cv::Scalar(0), 2);
+        cv::circle(flip_fusion_mat, cv::Point(wx, wy), 3, cv::Scalar(0 , 0 , 0), 2);
 
         int wx_n, wy_n;
         float target_x = m_robot_pose.x + 1 * std::cos(m_robot_pose.theta);
@@ -181,7 +181,7 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
             flip_fusion_mat,
             cv::Point(wx, wy),
             cv::Point(wx_n, wy_n),
-            cv::Scalar(0), 1);
+            cv::Scalar(0 , 0 , 0), 1);
 
         int flip_fusion_mat_height, flip_fusion_mat_width;
         flip_fusion_mat_height = flip_fusion_mat.rows;
@@ -197,10 +197,14 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
     }
 
     cv::Mat fusion_map;
+    // usage1
     // slamMapToMat(publish_map, fusion_map);
+
+    // usage2
     slamMapToMatInv(publish_map, fusion_map);
     cv::flip(fusion_map, fusion_map, 0);
     cv::imshow("fusion_map", fusion_map);
+
     cv::waitKey(10);
 
     return fusion_map;
@@ -483,7 +487,7 @@ bool PerceptionModule::fusion_stragety_recall(const nav_messages::FusionOccupanc
 
         int newIndex = small_row * fusion_occupancy_grid_small.info.width + small_col;
 
-        if (fusion_occupancy_grid.data[i] >= 100)
+        if (fusion_occupancy_grid.data[i] > 100)
         {
             fusion_occupancy_grid_small.data[newIndex] = fusion_occupancy_grid.data[i];
         }

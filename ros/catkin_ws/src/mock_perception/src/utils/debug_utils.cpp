@@ -1,6 +1,8 @@
 #include "utils/debug_utils.h"
 #include <set>
 
+std::vector<cv::Scalar> rgb_colors = {cv::Scalar(246, 42, 42), cv::Scalar(254, 218, 2), cv::Scalar(85, 254, 18), cv::Scalar(10, 250, 147), cv::Scalar(17, 150, 250), cv::Scalar(91, 30, 245), cv::Scalar(244, 44, 216)};
+
 void slamMapToMatInv(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv)
 {
     int size_x = map.info.width;
@@ -40,6 +42,69 @@ void slamMapToMatInv(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_
             else
             {
                 map_cv.data[idx] = map_data[idx_map_y + x];
+            }
+        }
+    }
+}
+
+void slamMapToMatColor(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv)
+{
+    int size_x = map.info.width;
+    int size_y = map.info.height;
+
+    if ((size_x < 3) || (size_y < 3))
+    {
+        return;
+    }
+
+    // resize cv image if it doesn't have the same dimensions as the map
+    if ((map_cv.rows != size_y) || (map_cv.cols != size_x))
+    {
+        map_cv = cv::Mat(size_y, size_x, CV_8UC3);
+    }
+    const std::vector<int8_t> &map_data(map.data);
+
+    int size_y_rev = size_y - 1;
+    for (int y = size_y_rev; y >= 0; --y)
+    {
+        int idx_map_y = size_x * (size_y_rev - y);
+        int idx_img_y = size_x * y;
+
+        cv::Vec3b *p = map_cv.ptr<cv::Vec3b>(y);
+
+        for (int x = 0; x < size_x; ++x)
+        {
+            cv::Vec3b &pix = *p++;
+
+            int idx = idx_img_y + x;
+            if (map_data[idx_map_y + x] == -1)
+            {
+                pix[0] = 127;
+                pix[1] = 127;
+                pix[2] = 127;
+            }
+            else if (map_data[idx_map_y + x] >= 60)
+            {
+                if (map_data[idx_map_y + x] >= 101)
+                {
+                    int label = map_data[idx_map_y + x] - 101;
+                    cv::Scalar color = rgb_colors[label];
+                    pix[0] = color[0];
+                    pix[1] = color[1];
+                    pix[2] = color[2];
+                }
+                else
+                {
+                    pix[0] = 0;
+                    pix[1] = 0;
+                    pix[2] = 0;
+                }
+            }
+            else
+            {
+                pix[0] = 255;
+                pix[1] = 255;
+                pix[2] = 255;
             }
         }
     }

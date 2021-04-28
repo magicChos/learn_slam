@@ -23,13 +23,15 @@
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 
+void slamMapToMatColor(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
+
 void slamMapToMatInv(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 
 int64_t GetTimeStamp();
 
 Eigen::MatrixXd Mat2MatrixXd(const cv::Mat &R);
 
-void printTimeStamp(const ImageData &image_data , const CloudData &cloud_data , const geometry_messages::Pose2D &robot_pose);
+void printTimeStamp(const ImageData &image_data, const CloudData &cloud_data, const geometry_messages::Pose2D &robot_pose);
 
 void printRobotPose(const geometry_messages::Pose2D &robot_pose);
 
@@ -40,5 +42,3 @@ cv::Rect getRect(const std::vector<cv::Point> &points);
 
 // 获取图像的模糊量
 double blurValue(cv::Mat &img);
-
-
