@@ -4,13 +4,12 @@
 #include "common/log.h"
 #include <Eigen/Core>
 #include <Eigen/Eigen>
-
+#include <vector>
 namespace ace
 {
     namespace perception
     {
-        static const char *sric_names[] = {"background", "bottle", "shoes", "wire", "trash can", "clothes"};
-
+        static const char *sric_names[] = {"background", "bottle", "shoes", "wire", "trash can", "clothes", "base", "weight scale"};
         ObstacleDetector::ObstacleDetector(ace::sensor::CameraInterface *camera,
                                            ObstacleDetectOption &option)
             : m_camera(camera), option(option)
