@@ -6,8 +6,7 @@
 
 PerceptionModule::PerceptionModule()
 {
-    std::cout << "step into perception module" << std::endl;
-
+    LogInfo("step into perception module");
     init_params();
 
     m_camera = std::make_shared<ace::sensor::VirtualCamera>();
@@ -21,6 +20,7 @@ void PerceptionModule::setTofBaseMatrix(Eigen::Matrix4d &tofBaseMatrix)
 
 bool PerceptionModule::init_params()
 {
+    LogInfo("begin init params");
     std::string current_dir = stlplus::folder_up(__FILE__);
     std::string config_file = current_dir + "../../config/obstacle_detection.ini";
     std::shared_ptr<ace::common::INIReader> reader = std::make_shared<ace::common::INIReader>(config_file);
@@ -48,6 +48,8 @@ bool PerceptionModule::init_params()
     m_option.pix_thresh = reader->GetInteger("params", "pix_thresh", 127);
 
     m_current_timeStamp = GetTimeStamp();
+
+    LogInfo("finished init params");
     return true;
 }
 
@@ -92,6 +94,7 @@ bool PerceptionModule::run()
 
 cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map)
 {
+    LogInfo("processing");
     float diff_theta = robot_pose.theta - m_last_robot_pose.theta;
     float diff_time = robot_pose.timestamp - m_last_robot_pose.timestamp;
 
@@ -125,13 +128,13 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
 
     if (roate_fast_flag)
     {
-        std::cout << "@test robot rotate fast" << std::endl;
+        LogInfo("robot rotate fast , object map is not update");
         return cv::Mat();
     }
 
     if (!GetLocalMap(rgb_image, pointCloud))
     {
-        std::cout << "@test generate localmap failture" << std::endl;
+        LogInfo("generate localmap failture");
         return cv::Mat();
     }
 
@@ -143,9 +146,7 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
     timer_obj->Toc();
     nav_messages::FusionOccupancyGrid fusion_occupancy_resize_map = FusionOccupancyGrid_clone(m_resize_occupancy_grid);
 
-    std::cout << "@test before obs points : " << m_obstacle_pts.size() << std::endl;
     fusion_stragty_resize(fusion_occupancy_resize_map);
-    std::cout << "@test after obs points: " << m_obstacle_pts.size() << std::endl;
 
     fusion_stragety_recall(fusion_occupancy_resize_map, publish_map);
 
@@ -349,9 +350,8 @@ bool PerceptionModule::UpdateMap()
             }
         }
     }
-    std::cout << "@test obstacle points : " << m_obstacle_pts.size() << std::endl;
+
     obstaclePointsFilter();
-    std::cout << "@test after filter obstacle points: " << m_obstacle_pts.size() << std::endl;
     if (m_option.debug)
     {
         if (m_global_map.rows > 0 && m_global_map.cols > 0)
@@ -414,14 +414,12 @@ bool PerceptionModule::fusion_stragty_resize(nav_messages::FusionOccupancyGrid &
         int newIndex = wx + fusion_occupancy_grid.info.width * wy;
         if (newIndex >= data_size)
         {
-            std::cout << "@test 索引越界删除障碍物点" << std::endl;
             m_obstacle_pts.erase(it++);
             continue;
         }
 
         if (m_current_timeStamp - it->time_stamp > m_option.elapse_time)
         {
-            std::cout << "@test 时间戳更新删除障碍物点" << std::endl;
             fusion_occupancy_grid.data[newIndex] = 0;
             m_obstacle_pts.erase(it++);
         }

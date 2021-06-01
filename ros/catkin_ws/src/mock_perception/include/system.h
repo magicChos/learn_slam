@@ -14,6 +14,9 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include "lcm_cpp/nav_messages/FusionOccupancyGrid.hpp"
 #include "utils/perception_time.h"
+#include "common/log.h"
+
+using namespace ace::common;
 
 class MockSystem
 {

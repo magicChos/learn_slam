@@ -34,6 +34,7 @@ void MapSubscriber::msg_callback(const nav_msgs::OccupancyGridConstPtr &msg)
         return;
     }
 
+    std::lock_guard<std::mutex> guard(buff_mutex_);
     convert_rosOccupancyGraid_FusionOccupancyGrid(msg , new_map_data);
     m_receive_slammap = true;
 }

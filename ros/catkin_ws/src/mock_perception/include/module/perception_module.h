@@ -8,6 +8,7 @@
 #include <vector>
 #include "sensor/camera.h"
 #include <deque>
+#include "common/log.h"
 
 class ObstacleDetector;
 class ObstacleDetectOption;

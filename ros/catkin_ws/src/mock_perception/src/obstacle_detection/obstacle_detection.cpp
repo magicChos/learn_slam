@@ -215,6 +215,7 @@ namespace ace
 
             if (point_number < 10)
             {
+                LogInfo("the current pointcloud size is less than 10");
                 return false;
             }
 
@@ -339,7 +340,6 @@ namespace ace
         {
             if (dets.empty())
             {
-                std::cout << "@test no detect result" << std::endl;
                 return false;
             }
 
@@ -390,6 +390,7 @@ namespace ace
 
         void ObstacleDetector::cameraParamsInit()
         {
+            LogInfo("camera param init");
             m_camera->GetCalibration(m_C);
             Eigen::Matrix3f R;
             Eigen::Vector3f T;

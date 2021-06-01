@@ -34,7 +34,6 @@ bool TFListener::LookupData(geometry_messages::Pose2D &robot_pose)
     try
     {
         tf::StampedTransform transform;
-        // listener_.waitForTransform(base_frame_id_, child_frame_id_, ros::Time(0), ros::Duration(3.0));
         listener_.lookupTransform(base_frame_id_, child_frame_id_, ros::Time(0), transform);
 
         double roll, pitch, yaw;
