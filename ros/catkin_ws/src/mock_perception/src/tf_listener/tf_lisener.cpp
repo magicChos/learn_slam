@@ -9,17 +9,24 @@ TFListener::TFListener(ros::NodeHandle &nh, std::string base_frame_id, std::stri
 
 bool TFListener::LookupData(Eigen::Matrix4d &transform_matrix)
 {
-    try
+    while (true)
     {
-        tf::StampedTransform transform;
-        listener_.lookupTransform(base_frame_id_, child_frame_id_, ros::Time(0), transform);
-        TransformToMatrix(transform, transform_matrix);
-        return true;
+        try
+        {
+            tf::StampedTransform transform;
+            listener_.waitForTransform(base_frame_id_, child_frame_id_, ros::Time(0), ros::Duration(3.0));
+            listener_.lookupTransform(base_frame_id_, child_frame_id_, ros::Time(0), transform);
+            TransformToMatrix(transform, transform_matrix);
+            break;
+        }
+        catch (tf::TransformException &ex)
+        {
+            ROS_ERROR("%s", ex.what());
+            ros::Duration(1.0).sleep();
+        }
     }
-    catch (tf::TransformException &ex)
-    {
-        return false;
-    }
+
+    return true;
 }
 
 bool TFListener::LookupData(geometry_messages::Pose2D &robot_pose)

@@ -12,7 +12,7 @@ MockSystem::MockSystem(std::shared_ptr<BaseModule> module)
     m_cloud_sub = std::make_shared<CloudSubscriber>(m_nh, "/pico_camera/point_cloud", 10000);
     m_map_sub = std::make_shared<MapSubscriber>(m_nh, "/map", 10000);
     m_listener = std::make_shared<TFListener>(m_nh, "map", "base_footprint");
-    m_tof_listener = std::make_shared<TFListener>(m_nh , "base_footprint" , "/pico_camera_depth_frame");
+    m_tof_listener = std::make_shared<TFListener>(m_nh , "base_footprint" , "pico_camera_depth_frame");
     m_timer = std::make_shared<Timer>();
 
     m_robot_thread = std::make_shared<std::thread>(&MockSystem::handleRobotPose, this);
@@ -26,7 +26,8 @@ MockSystem::~MockSystem()
 void MockSystem::Run()
 {
     m_tof_listener->LookupData(m_tof_base_matrix);
-    
+    m_module->setTofBaseMatrix(m_tof_base_matrix);
+
     ros::Rate rate(10);
     while (ros::ok())
     {

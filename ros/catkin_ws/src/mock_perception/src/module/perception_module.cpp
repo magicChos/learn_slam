@@ -47,17 +47,7 @@ bool PerceptionModule::init_params()
     m_option.elapse_time = reader->GetInteger("params", "elapse_time", 30000);
     m_option.pix_thresh = reader->GetInteger("params", "pix_thresh", 127);
 
-    {
-        m_tof_2_base_matrix << 1.0501503000000001e-02, 2.0494568000000001e-03,
-            9.9994278000000003e-01, 2.0858668689999998e-01, -9.9994123000000001e-01,
-            2.7064331999999999e-03, 1.0495938999999999e-02, -1.6197355000000000e-02,
-            -2.6847673999999999e-03, -9.9999422000000004e-01, 2.0777580999999999e-03,
-            5.2435359199999997e-02, 0., 0., 0., 1.;
-
-        m_base_2_map_matrix = Eigen::Matrix4d::Identity();
-    }
     m_current_timeStamp = GetTimeStamp();
-
     return true;
 }
 
@@ -162,14 +152,14 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
     if (m_option.debug)
     {
         cv::Mat fusion_mat;
-        slamMapToMatColor(fusion_occupancy_resize_map , fusion_mat);
+        slamMapToMatColor(fusion_occupancy_resize_map, fusion_mat);
         cv::Mat flip_fusion_mat = fusion_mat.clone();
         cv::flip(flip_fusion_mat, flip_fusion_mat, 0);
 
         int wx, wy;
         worldToMap(m_robot_pose.x, m_robot_pose.y, wx, wy,
                    fusion_occupancy_resize_map);
-        cv::circle(flip_fusion_mat, cv::Point(wx, wy), 3, cv::Scalar(0 , 0 , 0), 2);
+        cv::circle(flip_fusion_mat, cv::Point(wx, wy), 3, cv::Scalar(0, 0, 0), 2);
 
         int wx_n, wy_n;
         float target_x = m_robot_pose.x + 1 * std::cos(m_robot_pose.theta);
@@ -181,7 +171,7 @@ cv::Mat PerceptionModule::run(const cv::Mat &rgb_image, const std::vector<Eigen:
             flip_fusion_mat,
             cv::Point(wx, wy),
             cv::Point(wx_n, wy_n),
-            cv::Scalar(0 , 0 , 0), 1);
+            cv::Scalar(0, 0, 0), 1);
 
         int flip_fusion_mat_height, flip_fusion_mat_width;
         flip_fusion_mat_height = flip_fusion_mat.rows;
