@@ -30,9 +30,10 @@ void ColorSubscriber::msg_callback(const sensor_msgs::Image::ConstPtr &color_msg
     {
         return;
     }
-    std::lock_guard<std::mutex> guard(buff_mutex_);
+    
     try
     {
+        std::lock_guard<std::mutex> guard(buff_mutex_);
         cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(color_msg_ptr, sensor_msgs::image_encodings::BGR8);
         double meanValue = blurValue(cv_ptr->image);
 

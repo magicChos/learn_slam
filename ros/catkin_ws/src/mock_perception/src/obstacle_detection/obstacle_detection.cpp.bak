@@ -4,12 +4,13 @@
 #include "common/log.h"
 #include <Eigen/Core>
 #include <Eigen/Eigen>
-#include <vector>
+
 namespace ace
 {
     namespace perception
     {
-        static const char *sric_names[] = {"background", "bottle", "shoes", "wire", "trash can", "clothes", "base", "weight scale"};
+        static const char *sric_names[] = {"background", "bottle", "shoes", "wire", "trash can", "clothes"};
+
         ObstacleDetector::ObstacleDetector(ace::sensor::CameraInterface *camera,
                                            ObstacleDetectOption &option)
             : m_camera(camera), option(option)
@@ -29,6 +30,7 @@ namespace ace
                 return false;
             }
             timer_obj->Toc();
+            std::cout << "@test getSingleLevelLocalMap cost time: " << timer_obj->Elasped() << std::endl;
 
             if (option.detectObjects)
             {
@@ -48,9 +50,8 @@ namespace ace
 
         bool ObstacleDetector::detectObjects(cv::Mat &map, const cv::Mat &rgb)
         {
+            m_timer->Tic();
 
-            std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
-            timer_obj->Tic();
             std::vector<OBJECT> objects;
 
             if (!ObjectDetectionWrapper::get().Detect(rgb, objects))
@@ -58,7 +59,6 @@ namespace ace
                 LogError("Object detection failed");
                 return false;
             }
-            timer_obj->Toc();
 
             if (option.debug)
             {
@@ -215,11 +215,10 @@ namespace ace
 
             if (point_number < 10)
             {
-                LogInfo("the current pointcloud size is less than 10");
                 return false;
             }
 
-            // #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
             for (size_t i = 0; i < point_number; ++i)
             {
                 auto &p = pointCloud[i];
@@ -261,7 +260,7 @@ namespace ace
             int boundary_thresh = 2 * map.rows + map.cols - 2 - boundary;
             int u, v;
             bool foundBlock = false;
-
+#pragma omp parallel for schedule(dynamic)
             for (int i = boundary; i < boundary_thresh; ++i)
             {
                 if (i < map.rows)
@@ -317,6 +316,17 @@ namespace ace
                     map.at<uchar>(i) = 0;
                 }
             }
+
+            // for (int u = 0; u < map.rows; ++u)
+            // {
+            //     for (int v = 0; v < map.cols; ++v)
+            //     {
+            //         if (mapMask.at<uint8_t>(u, v) == 0)
+            //         {
+            //             map.at<uchar>(u, v) = 0;
+            //         }
+            //     }
+            // }
             cv::morphologyEx(map, map, cv::MORPH_CLOSE, kernel);
 
             for (int i = 0; i < size; ++i)
@@ -333,6 +343,21 @@ namespace ace
                 }
             }
 
+            // for (int u = 0; u < map.rows; ++u)
+            // {
+            //     uchar *p = map.ptr<uchar>(u);
+            //     for (int v = 0; v < map.cols; ++v)
+            //     {
+            //         if (unknownMask.at<uint8_t>(u, v) == 255)
+            //         {
+            //             map.at<uchar>(u, v) = 127;
+            //         }
+            //         if (p[v] >= 200)
+            //         {
+            //             p[v] = 255;
+            //         }
+            //     }
+            // }
             return true;
         }
 
@@ -340,6 +365,7 @@ namespace ace
         {
             if (dets.empty())
             {
+                std::cout << "@test no detect result" << std::endl;
                 return false;
             }
 
@@ -390,7 +416,6 @@ namespace ace
 
         void ObstacleDetector::cameraParamsInit()
         {
-            LogInfo("camera param init");
             m_camera->GetCalibration(m_C);
             Eigen::Matrix3f R;
             Eigen::Vector3f T;

@@ -5,14 +5,14 @@
 
 MockSystem::MockSystem(std::shared_ptr<BaseModule> module)
 {
-    std::cout << "step into mock system" << std::endl;
+    LogInfo("step into mock system");
     m_module = module;
 
     m_color_sub = std::make_shared<ColorSubscriber>(m_nh, "/pico_camera/color_image", 10000);
     m_cloud_sub = std::make_shared<CloudSubscriber>(m_nh, "/pico_camera/point_cloud", 10000);
     m_map_sub = std::make_shared<MapSubscriber>(m_nh, "/map", 10000);
     m_listener = std::make_shared<TFListener>(m_nh, "map", "base_footprint");
-    m_tof_listener = std::make_shared<TFListener>(m_nh , "base_footprint" , "/pico_camera_depth_frame");
+    m_tof_listener = std::make_shared<TFListener>(m_nh, "base_footprint", "pico_camera_depth_frame");
     m_timer = std::make_shared<Timer>();
 
     m_robot_thread = std::make_shared<std::thread>(&MockSystem::handleRobotPose, this);
@@ -26,7 +26,8 @@ MockSystem::~MockSystem()
 void MockSystem::Run()
 {
     m_tof_listener->LookupData(m_tof_base_matrix);
-    
+    m_module->setTofBaseMatrix(m_tof_base_matrix);
+
     ros::Rate rate(10);
     while (ros::ok())
     {
@@ -38,7 +39,7 @@ void MockSystem::Run()
         }
         read_data();
 
-        while (has_data() )
+        while (has_data())
         {
             if (!check_data())
             {
@@ -47,7 +48,6 @@ void MockSystem::Run()
             cv::Mat fusion_map = m_module->run(m_current_image_data.image, m_current_cloud_vector_data, m_robot_pose, m_occupancy_grid);
         }
         rate.sleep();
-        
     }
 }
 
@@ -86,6 +86,45 @@ void MockSystem::handleMapMessage(const nav_msgs::OccupancyGridConstPtr &msg)
     return;
 }
 
+bool MockSystem::robotPoseSyncData(std::deque<geometry_messages::Pose2D> &unsyncdata, const int64_t sync_time, std::deque<geometry_messages::Pose2D> &syncdata)
+{
+    while (unsyncdata.size() >= 2)
+    {
+        if (unsyncdata.front().timestamp > sync_time)
+        {
+            return false;
+        }
+
+        if (unsyncdata.at(1).timestamp < sync_time)
+        {
+            unsyncdata.pop_front();
+            continue;
+        }
+
+        // 说明存在数据丢失
+        if (sync_time - unsyncdata.at(0).timestamp > 50)
+        {
+            unsyncdata.pop_front();
+            break;
+        }
+
+        if (unsyncdata.at(1).timestamp - sync_time > 50)
+        {
+            unsyncdata.pop_front();
+            break;
+        }
+    }
+
+    if (unsyncdata.size() < 2)
+    {
+        return false;
+    }
+
+    geometry_messages::Pose2D pose = unsyncdata.front();
+    syncdata.push_back(pose);
+    return true;
+}
+
 bool MockSystem::read_data()
 {
     m_color_sub->parse_data(m_image_buffer);
@@ -121,20 +160,30 @@ bool MockSystem::check_data()
 
     int diff_cloud_time = m_current_cloud_data.timestamp - m_current_image_data.timestamp;
     int diff_robot_time = m_current_cloud_data.timestamp - m_robot_pose.timestamp;
-    if (diff_cloud_time < -50)
+
+    // 点云的时间比图像的时间早于100ms
+    if (diff_cloud_time < -100)
     {
         m_cloud_buffer.pop_front();
         return false;
     }
 
-    if (diff_cloud_time > 50)
-    {
+    // 点云的时间比图像的时间晚100
 
+    if (diff_cloud_time > 100)
+    {
         m_image_buffer.pop_front();
         return false;
     }
 
-    if (abs(diff_robot_time) > 30)
+    if (diff_robot_time < 0)
+    {
+        m_cloud_buffer.pop_front();
+        m_image_buffer.pop_front();
+        return false;
+    }
+
+    if (diff_robot_time > 30)
     {
         m_robot_pose_buffer.pop_front();
         return false;

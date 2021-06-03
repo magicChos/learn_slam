@@ -14,6 +14,9 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include "lcm_cpp/nav_messages/FusionOccupancyGrid.hpp"
 #include "utils/perception_time.h"
+#include "common/log.h"
+
+using namespace ace::common;
 
 class MockSystem
 {
@@ -25,6 +28,8 @@ public:
     void handleRobotPose();
 
     void handleMapMessage(const nav_msgs::OccupancyGridConstPtr &msg);
+
+    static bool robotPoseSyncData(std::deque<geometry_messages::Pose2D> &unsyncdata , const int64_t sync_time , std::deque<geometry_messages::Pose2D> &syncdata);
 
 protected:
     std::shared_ptr<BaseModule> m_module;

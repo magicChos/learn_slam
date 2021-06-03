@@ -8,6 +8,7 @@
 #include <vector>
 #include "sensor/camera.h"
 #include <deque>
+#include "common/log.h"
 
 class ObstacleDetector;
 class ObstacleDetectOption;
@@ -19,7 +20,6 @@ public:
     bool run();
 
     cv::Mat run(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &slam_map);
-
 private:
     bool GetLocalMap(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud);
     bool updateGlobalMap(const geometry_messages::Pose2D &robot_pose, const nav_messages::FusionOccupancyGrid &occupacy_grid);
@@ -43,8 +43,8 @@ private:
     bool obstaclePointsFilter();
 
 private:
-    Eigen::Matrix4d m_tof_2_base_matrix;
-    Eigen::Matrix4d m_base_2_map_matrix;
+    Eigen::Matrix4d m_tof_2_base_matrix = Eigen::Matrix4d::Identity();
+    Eigen::Matrix4d m_base_2_map_matrix = Eigen::Matrix4d::Identity();
 
     cv::Mat m_global_map, m_local_map;
     geometry_messages::Pose2D m_robot_pose, m_last_robot_pose;
@@ -61,6 +61,8 @@ private:
     float m_tof_x = 0.0;
     float m_tof_y = 0.0;
 };
+
+
 
 
 
