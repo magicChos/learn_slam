@@ -547,10 +547,10 @@ namespace ace
             yaml_reader_obj->getNodeMatrix("extrinsic_matrix", extrinsic_matrix);
 
             C = Eigen::Matrix3f::Identity(3, 3);
-            C(0, 0) = camera_matrix.at<float>(0, 2);
-            C(1, 1) = camera_matrix.at<float>(1, 2);
-            C(0, 2) = camera_matrix.at<float>(0, 0);
-            C(1, 2) = camera_matrix.at<float>(1, 1);
+            C(0, 0) = camera_matrix.at<float>(0, 0);
+            C(1, 1) = camera_matrix.at<float>(1, 1);
+            C(0, 2) = camera_matrix.at<float>(0, 2);
+            C(1, 2) = camera_matrix.at<float>(1, 2);
             params = C;
 
             cv::Mat R_matrix = extrinsic_matrix.rowRange(0, 3).colRange(0, 3);

@@ -284,49 +284,6 @@ bool PerceptionModule::UpdateMap()
                 m_obstacle_pts.emplace_back(ObstaclePoint(gu, gv, local_map_value, time_stamp));
             }
 
-            // if (global_map_value == 127)
-            // {
-            //     global_map_value = local_map_value;
-            //     if (local_map_value > m_option.pix_thresh)
-            //     {
-            //         if (cgu > 0 && m_global_map.at<uchar>(cgv - 1, cgu) < 200)
-            //         {
-            //             m_global_map.at<uchar>(cgv - 1, cgu) = local_map_value;
-            //         }
-            //         if (cgv > 0 && m_global_map.at<uchar>(cgv, cgu - 1) < 200)
-            //         {
-            //             m_global_map.at<uchar>(cgv, cgu - 1) = local_map_value;
-            //         }
-            //         if (cgu < m_global_map.rows &&
-            //             m_global_map.at<uchar>(cgv + 1, cgu) < 200)
-            //         {
-            //             m_global_map.at<uchar>(cgv + 1, cgu) = local_map_value;
-            //         }
-
-            //         if (cgv < m_global_map.cols &&
-            //             m_global_map.at<uchar>(cgv, cgu + 1) < 200)
-            //         {
-            //             m_global_map.at<uchar>(cgv, cgu + 1) = local_map_value;
-            //         }
-            //     }
-
-            //     continue;
-            // }
-
-            // if (local_map_value == 0)
-            // {
-            //     global_map_value = 0;
-            //     if (cgv > 0)
-            //         m_global_map.at<uchar>(cgv - 1, cgu) = 0;
-            //     if (cgu > 0)
-            //         m_global_map.at<uchar>(cgv, cgu - 1) = 0;
-            //     if (cgv < m_global_map.rows)
-            //         m_global_map.at<uchar>(cgv + 1, cgu) = 0;
-            //     if (cgu < m_global_map.cols)
-            //         m_global_map.at<uchar>(cgv, cgu + 1) = 0;
-            //     continue;
-            // }
-
             if (global_map_value == 127)
             {
                 global_map_value = local_map_value;

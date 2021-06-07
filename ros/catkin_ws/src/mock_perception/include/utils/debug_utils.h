@@ -20,6 +20,8 @@
 #include "sensor_data/cloud_data.hpp"
 #include "sensor_data/image_data.hpp"
 #include "geometry_messages/Pose2D.hpp"
+#include "object_detection/object_detection.h"
+#include <vector>
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 
@@ -42,3 +44,9 @@ cv::Rect getRect(const std::vector<cv::Point> &points);
 
 // 获取图像的模糊量
 double blurValue(cv::Mat &img);
+
+int project_to_rgb_image(const std::vector<OBJECT> &objects,
+                         const Eigen::Vector3f &p3f,
+                         const Eigen::Matrix3f &intrinsic_matrix,
+                         const Eigen::Matrix3f extrinsic_matrix = Eigen::Matrix3f::Identity(),
+                         const Eigen::Vector3f translation = Eigen::Vector3f::Zero());

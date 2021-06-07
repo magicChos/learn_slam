@@ -95,7 +95,14 @@ namespace ace
             ace::sensor::CameraInterface *m_camera;
             ObstacleDetectOption option;
             std::shared_ptr<Timer> m_timer;
-            Eigen::Matrix3f m_C;
+
+            // camera intrisic matrix ,the format is [[cx , 0 , fx] , [0 , cy , fy] , [0 , 0 , 1]], is not standard format 
+            Eigen::Matrix3f m_C = Eigen::Matrix3f::Identity();
+
+            // rgb and depth extrinsic matrix
+            Eigen::Matrix3f m_R = Eigen::Matrix3f::Identity();
+            Eigen::Vector3f m_T;
+
             Eigen::Vector3f m_rgbOrigin3D;
 
             double m_blockProb;

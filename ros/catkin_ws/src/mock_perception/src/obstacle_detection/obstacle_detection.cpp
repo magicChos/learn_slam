@@ -5,6 +5,7 @@
 #include <Eigen/Core>
 #include <Eigen/Eigen>
 #include <vector>
+#include "utils/debug_utils.h"
 namespace ace
 {
     namespace perception
@@ -26,7 +27,6 @@ namespace ace
                 LogError("generate local map failture");
                 return false;
             }
-
 
             if (option.detectObjects)
             {
@@ -61,76 +61,100 @@ namespace ace
                 cv::imshow("detect", temp_rgb);
             }
 
-            Eigen::Matrix3f &C = m_C;
-            int rgbOriginV = m_rgbOrigin3D.x();
-            float depth = m_rgbOrigin3D.z();
+            // songpei 原始方法
+            // Eigen::Matrix3f &C = m_C;
+            // int rgbOriginV = m_rgbOrigin3D.x();
+            // float depth = m_rgbOrigin3D.z();
 
-            for (const auto &object : objects)
+            // for (const auto &object : objects)
+            // {
+            //     Eigen::Vector3d pointLeft{
+            //         (object.rect.x + object.rect.width - C(0, 2)) / C(0, 0) * depth,
+            //         (object.rect.y - C(1, 2)) / C(1, 1) * depth, depth};
+            //     Eigen::Vector3d pointRight{(object.rect.x - C(0, 2)) / C(0, 0) * depth,
+            //                                (object.rect.y - C(1, 2)) / C(1, 1) * depth,
+            //                                depth};
+
+            //     int leftV = int(pointLeft.x() / option.resolution) + (option.width / 2);
+            //     int rightV = int(pointRight.x() / option.resolution) + (option.width / 2);
+
+            //     std::vector<cv::Point2i> objectPoints;
+            //     std::vector<int> objectUs;
+
+            //     for (int u = option.height - 1; u >= 0; --u)
+            //     {
+            //         int v0 = rgbOriginV +
+            //                  (leftV - rgbOriginV) * (option.height - u) / option.height;
+            //         int v1 = rgbOriginV +
+            //                  (rightV - rgbOriginV) * (option.height - u) / option.height;
+            //         if (v0 > v1)
+            //         {
+            //             std::swap(v0, v1);
+            //         }
+            //         v0 = std::max(v0, 0);
+            //         v1 = std::min(v1, option.width - 1);
+            //         for (int v = v0; v <= v1; ++v)
+            //         {
+            //             uint8_t &c = map.at<uint8_t>(u, v);
+            //             if (c == 255)
+            //             {
+            //                 // c = object.label % 255;
+            //                 objectPoints.push_back({u, v});
+            //                 objectUs.push_back(u);
+            //             }
+            //         }
+            //     }
+            //     if (objectUs.size() == 0)
+            //         continue;
+
+            //     std::sort(objectUs.rbegin(), objectUs.rend());
+            //     int startU = objectUs.front(), endU = objectUs.back();
+            //     {
+            //         size_t i;
+            //         for (i = 1; i < objectUs.size() - 1; ++i)
+            //         {
+            //             if (startU - objectUs[i] < 5)
+            //                 break;
+            //             startU = objectUs[i];
+            //         }
+            //         endU = objectUs[i];
+            //         for (; i < objectUs.size(); ++i)
+            //         {
+            //             if (endU - objectUs[i] >= 5)
+            //                 break;
+            //             endU = objectUs[i];
+            //         }
+            //     }
+
+            //     for (const auto &point : objectPoints)
+            //     {
+            //         if (point.x > startU || point.x < endU)
+            //             continue;
+
+            //         map.at<uint8_t>(point.x, point.y) = object.label + 200;
+            //     }
+            // }
+
+            int local_map_height = map.rows;
+            int local_map_width = map.cols;
+            Eigen::Vector3f temp_pt;
+            for (int u = 0; u < local_map_height; ++u)
             {
-                Eigen::Vector3d pointLeft{
-                    (object.rect.x + object.rect.width - C(0, 0)) / C(0, 2) * depth,
-                    (object.rect.y - C(1, 1)) / C(1, 2) * depth, depth};
-                Eigen::Vector3d pointRight{(object.rect.x - C(0, 0)) / C(0, 2) * depth,
-                                           (object.rect.y - C(1, 1)) / C(1, 2) * depth,
-                                           depth};
-
-                int leftV = int(pointLeft.x() / option.resolution) + (option.width / 2);
-                int rightV = int(pointRight.x() / option.resolution) + (option.width / 2);
-
-                std::vector<cv::Point2i> objectPoints;
-                std::vector<int> objectUs;
-
-                for (int u = option.height - 1; u >= 0; --u)
+                uchar *p = map.ptr<uchar>(u);
+                for (int v = 0; v < local_map_width; ++v)
                 {
-                    int v0 = rgbOriginV +
-                             (leftV - rgbOriginV) * (option.height - u) / option.height;
-                    int v1 = rgbOriginV +
-                             (rightV - rgbOriginV) * (option.height - u) / option.height;
-                    if (v0 > v1)
+                    if (p[v] == 255)
                     {
-                        std::swap(v0, v1);
-                    }
-                    v0 = std::max(v0, 0);
-                    v1 = std::min(v1, option.width - 1);
-                    for (int v = v0; v <= v1; ++v)
-                    {
-                        uint8_t &c = map.at<uint8_t>(u, v);
-                        if (c == 255)
-                        {
-                            // c = object.label % 255;
-                            objectPoints.push_back({u, v});
-                            objectUs.push_back(u);
-                        }
-                    }
-                }
-                if (objectUs.size() == 0)
-                    continue;
+                        float du = (local_map_height - u) * 0.01;
+                        float dv = (v - local_map_width / 2) * 0.01;
 
-                std::sort(objectUs.rbegin(), objectUs.rend());
-                int startU = objectUs.front(), endU = objectUs.back();
-                {
-                    size_t i;
-                    for (i = 1; i < objectUs.size() - 1; ++i)
-                    {
-                        if (startU - objectUs[i] < 5)
-                            break;
-                        startU = objectUs[i];
-                    }
-                    endU = objectUs[i];
-                    for (; i < objectUs.size(); ++i)
-                    {
-                        if (endU - objectUs[i] >= 5)
-                            break;
-                        endU = objectUs[i];
-                    }
-                }
+                        temp_pt << dv, 0.0, du;
 
-                for (const auto &point : objectPoints)
-                {
-                    if (point.x > startU || point.x < endU)
-                        continue;
+                        // to do ，将空间点投影到rgb图像上，判断是否在检测框内，如果是则返回检测框的label
 
-                    map.at<uint8_t>(point.x, point.y) = object.label + 200;
+                        int label = project_to_rgb_image(objects, temp_pt, m_C, m_R, m_T);
+                        p[v] = label + 200;
+                    }
                 }
             }
 
@@ -383,19 +407,21 @@ namespace ace
         {
             LogInfo("camera param init");
             m_camera->GetCalibration(m_C);
-            Eigen::Matrix3f R;
-            Eigen::Vector3f T;
+            // Eigen::Matrix3f R;
+            // Eigen::Vector3f T;
 
-            m_camera->GetExtrinsic(R, T);
+            m_camera->GetExtrinsic(m_R, m_T);
 
+            // rgb相机原点在depth相机坐标系下的坐标
             Eigen::Vector3f rgbOrigin;
             rgbOrigin << 0, 0, 0;
-            rgbOrigin = R.inverse() * (rgbOrigin - T);
+            rgbOrigin = m_R.inverse() * (rgbOrigin - m_T);
 
             int rgbOriginV = int(rgbOrigin.x() / option.resolution) + (option.width / 2),
                 rgbOriginU = option.height - int(rgbOrigin.z() / option.resolution);
 
-            float depth = option.height * option.resolution;
+            // float depth = option.height * option.resolution;
+            float depth = 1200;
             m_rgbOrigin3D << rgbOriginV, rgbOriginU, depth;
 
             const double lidarTop = option.lidarTop;

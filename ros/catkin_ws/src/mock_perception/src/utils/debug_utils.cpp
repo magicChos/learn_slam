@@ -68,7 +68,7 @@ void slamMapToMatColor(const nav_messages::FusionOccupancyGrid &map, cv::Mat &ma
     for (int y = size_y_rev; y >= 0; --y)
     {
         int idx_map_y = size_x * (size_y_rev - y);
-        int idx_img_y = size_x * y;
+        // int idx_img_y = size_x * y;
 
         cv::Vec3b *p = map_cv.ptr<cv::Vec3b>(y);
 
@@ -76,7 +76,7 @@ void slamMapToMatColor(const nav_messages::FusionOccupancyGrid &map, cv::Mat &ma
         {
             cv::Vec3b &pix = *p++;
 
-            int idx = idx_img_y + x;
+            // int idx = idx_img_y + x;
             if (map_data[idx_map_y + x] == -1)
             {
                 pix[0] = 127;
@@ -189,7 +189,7 @@ bool pixelCluster(cv::Mat &img, std::map<uchar, cv::Rect> &cluster_result)
     cluster_result.clear();
 
     std::map<uchar, std::vector<cv::Point>> cluster_points;
-    for (size_t i = 0; i < height; ++i)
+    for (int i = 0; i < height; ++i)
     {
         uchar *p = img.ptr<uchar>(i);
         for (int j = 0; j < width; ++j)
@@ -261,4 +261,27 @@ double blurValue(cv::Mat &img)
     double meanValue = std::pow(stddev.val[0], 2);
 
     return meanValue;
+}
+
+int project_to_rgb_image(const std::vector<OBJECT> &objects,
+                         const Eigen::Vector3f &p3d,
+                         const Eigen::Matrix3f &intrinsic_matrix,
+                         const Eigen::Matrix3f extrinsic_matrix,
+                         const Eigen::Vector3f translation)
+{
+    Eigen::Vector3f p3c = extrinsic_matrix * p3d + translation;
+    p3c /= p3c[2];
+    Eigen::Vector3f pix = intrinsic_matrix * p3c;
+
+    for(const auto obj : objects)
+    {
+        if (pix[0] < obj.rect.x || pix[0] >= obj.rect.x + obj.rect.width || pix[1] < obj.rect.y || pix[1] >= obj.rect.y + obj.rect.height)
+        {
+            continue;
+        }
+
+        return obj.label;
+    }
+
+    return -1;
 }
