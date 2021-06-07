@@ -215,7 +215,7 @@ bool PerceptionModule::GetLocalMap(const cv::Mat &rgb_image, const std::vector<E
         //     auto rect = p.second;
         //     cv::rectangle(temp , rect , cv::Scalar(255) , 1);
         // }
-        // cv::imshow("localmap", temp);
+        // cv::imshow("temp", temp);
 
         cv::imshow("localmap", m_local_map);
         return true;

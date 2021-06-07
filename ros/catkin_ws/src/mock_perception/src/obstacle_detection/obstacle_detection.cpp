@@ -20,15 +20,13 @@ namespace ace
 
         bool ObstacleDetector::GenerateLocalMap(const cv::Mat &rgb_image, const std::vector<Eigen::Vector3d> &pointCloud, cv::Mat &localmap)
         {
-            std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
-            timer_obj->Tic();
             bool success = getSingleLevelLocalMap(pointCloud, localmap);
             if (!success)
             {
                 LogError("generate local map failture");
                 return false;
             }
-            timer_obj->Toc();
+
 
             if (option.detectObjects)
             {
@@ -48,9 +46,6 @@ namespace ace
 
         bool ObstacleDetector::detectObjects(cv::Mat &map, const cv::Mat &rgb)
         {
-
-            std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
-            timer_obj->Tic();
             std::vector<OBJECT> objects;
 
             if (!ObjectDetectionWrapper::get().Detect(rgb, objects))
@@ -58,7 +53,6 @@ namespace ace
                 LogError("Object detection failed");
                 return false;
             }
-            timer_obj->Toc();
 
             if (option.debug)
             {
@@ -73,9 +67,6 @@ namespace ace
 
             for (const auto &object : objects)
             {
-                cv::Vec3b color(0, 0, 0);
-                color[object.label % 3] = 255;
-
                 Eigen::Vector3d pointLeft{
                     (object.rect.x + object.rect.width - C(0, 0)) / C(0, 2) * depth,
                     (object.rect.y - C(1, 1)) / C(1, 2) * depth, depth};

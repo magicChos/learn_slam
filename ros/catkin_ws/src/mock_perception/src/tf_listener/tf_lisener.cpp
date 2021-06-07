@@ -21,7 +21,7 @@ bool TFListener::LookupData(Eigen::Matrix4d &transform_matrix)
         }
         catch (tf::TransformException &ex)
         {
-            ROS_ERROR("%s", ex.what());
+            // ROS_ERROR("%s", ex.what());
             ros::Duration(1.0).sleep();
         }
     }
