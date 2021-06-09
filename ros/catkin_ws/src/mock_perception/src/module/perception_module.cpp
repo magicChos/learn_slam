@@ -364,7 +364,6 @@ bool PerceptionModule::fusion_stragty_resize(nav_messages::FusionOccupancyGrid &
     int data_size = fusion_occupancy_grid.data.size();
     int wx, wy;
     m_current_timeStamp = GetTimeStamp();
-
     for (auto it = m_obstacle_pts.begin(); it != m_obstacle_pts.end();)
     {
         worldToMap(it->pt_x_, it->pt_y_, wx, wy, fusion_occupancy_grid);

@@ -27,11 +27,12 @@ namespace ace
                 LogError("generate local map failture");
                 return false;
             }
-
             if (option.detectObjects)
             {
-                return detectObjects(localmap, rgb_image);
+                detectObjects(localmap, rgb_image);
             }
+
+            // cv::imshow("no_reverse_localmap", localmap);
 
             cv::flip(localmap, localmap, 1);
 
@@ -61,7 +62,7 @@ namespace ace
                 cv::imshow("detect", temp_rgb);
             }
 
-            // songpei 原始方法
+            // // songpei 原始方法
             // Eigen::Matrix3f &C = m_C;
             // int rgbOriginV = m_rgbOrigin3D.x();
             // float depth = m_rgbOrigin3D.z();
@@ -137,7 +138,7 @@ namespace ace
 
             int local_map_height = map.rows;
             int local_map_width = map.cols;
-            Eigen::Vector3f temp_pt;
+            Eigen::Vector3f temp_pt, temp_pt_zero;
             for (int u = 0; u < local_map_height; ++u)
             {
                 uchar *p = map.ptr<uchar>(u);
@@ -149,10 +150,17 @@ namespace ace
                         float dv = (v - local_map_width / 2) * 0.01;
 
                         temp_pt << dv, 0.0, du;
+                        temp_pt_zero << dv, 0.05, du;
 
-                        // to do ，将空间点投影到rgb图像上，判断是否在检测框内，如果是则返回检测框的label
+                        int label1 = project_to_rgb_image(objects, temp_pt, m_C, m_R, m_T);
+                        int label2 = project_to_rgb_image(objects, temp_pt_zero, m_C, m_R, m_T);
 
-                        int label = project_to_rgb_image(objects, temp_pt, m_C, m_R, m_T);
+                        int label = label1 > label2 ? label1 : label2;
+                        label = label > 0 ? label : 0;
+                        if (label == 0)
+                        {
+                            continue;
+                        }
                         p[v] = label + 200;
                     }
                 }

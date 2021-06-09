@@ -272,7 +272,7 @@ int project_to_rgb_image(const std::vector<OBJECT> &objects,
     Eigen::Vector3f p3c = extrinsic_matrix * p3d + translation;
     p3c /= p3c[2];
     Eigen::Vector3f pix = intrinsic_matrix * p3c;
-
+    
     for(const auto obj : objects)
     {
         if (pix[0] < obj.rect.x || pix[0] >= obj.rect.x + obj.rect.width || pix[1] < obj.rect.y || pix[1] >= obj.rect.y + obj.rect.height)
