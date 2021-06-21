@@ -65,29 +65,11 @@ def visDensities(mesh, densities):
     density_mesh.vertex_colors = o3d.utility.Vector3dVector(density_colors)
     o3d.visualization.draw_geometries([density_mesh])
 
-# Posssion
 
-
-def Posssion(pcd, vis_densities=False):
-    pcd_arr = np.asarray(pcd.points)
-
-    poisson_mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
-        pcd, depth=10)
-
-    densities = np.asarray(densities)
-    vertices_to_remove = densities < np.quantile(densities, 0.05)
-    poisson_mesh.remove_vertices_by_mask(vertices_to_remove)
-
-    bbox = pcd.get_axis_aligned_bounding_box()
-    p_mesh_crop = poisson_mesh.crop(bbox)
-    o3d.visualization.draw_geometries([p_mesh_crop])
-
-    # 可视化3d形状的密度，紫色表明低密度，黄色表明高密度
-    if vis_densities:
-        visDensities(p_mesh_crop, densities)
-
-    triangles = np.asarray(p_mesh_crop.triangles)
-    vertices = np.asarray(p_mesh_crop.vertices)
+# 根据mesh面积过滤
+def filterMesh(mesh):
+    triangles = np.asarray(mesh.triangles)
+    vertices = np.asarray(mesh.vertices)
 
     remove_index = []
     for i in range(triangles.shape[0]):
@@ -100,13 +82,34 @@ def Posssion(pcd, vis_densities=False):
             remove_index.append(i)
         elif  np.linalg.norm(p1 - p0) >= 0.01 or np.linalg.norm(p2 - p0) >= 0.01 or np.linalg.norm(p2 - p1) >= 0.01:
             remove_index.append(i)
+    
+    print(remove_index)        
+    mesh.remove_triangles_by_index(remove_index)
+    mesh.remove_unreferenced_vertices()
 
-    print("before triangles shape: ", triangles.shape)
-    p_mesh_crop.remove_triangles_by_index(remove_index)
-    p_mesh_crop.remove_unreferenced_vertices()
 
-    # triangles = np.asarray(p_mesh_crop.triangles)
-    # print("after triagnles shape: " , triangles.shape)
+# Posssion
+def Posssion(pcd, vis_densities=False):
+    pcd_arr = np.asarray(pcd.points)
+
+    poisson_mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
+        pcd, depth=10)
+
+    densities = np.asarray(densities)
+    vertices_to_remove = densities < np.quantile(densities, 0.05)
+    import pdb;pdb.set_trace()
+    poisson_mesh.remove_vertices_by_mask(vertices_to_remove)
+
+    bbox = pcd.get_axis_aligned_bounding_box()
+    p_mesh_crop = poisson_mesh.crop(bbox)
+    # o3d.visualization.draw_geometries([p_mesh_crop])
+
+    # 可视化3d形状的密度，紫色表明低密度，黄色表明高密度
+    if vis_densities:
+        visDensities(p_mesh_crop, densities)
+        
+        
+    filterMesh(p_mesh_crop)
 
     # # LOD
     # lods_num = [triangles.shape[0] , int(triangles.shape[0] * 0.1) , int(triangles.shape[0] * 0.01)]
@@ -165,7 +168,7 @@ def main():
     pcd.orient_normals_consistent_tangent_plane(10)
     # o3d.visualization.draw_geometries([pcd], point_show_normal=True)
 
-    Posssion(pcd, vis_densities=True)
+    Posssion(pcd, vis_densities=False)
 
 
 if __name__ == '__main__':
