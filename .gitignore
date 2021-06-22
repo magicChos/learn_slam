@@ -9,3 +9,5 @@ open3d/python/perceptionMagic/carline/__pycache__/
 open3d/python/perceptionMagic/carline/*.pyc
 open3d/python/perceptionMagic/publisher/__pycache__/
 open3d/python/perceptionMagic/utils/__pycache__/
+*.pcd
+*.ply

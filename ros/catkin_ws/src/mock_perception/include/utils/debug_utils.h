@@ -22,6 +22,8 @@
 #include "geometry_messages/Pose2D.hpp"
 #include "object_detection/object_detection.h"
 #include <vector>
+#include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/Geometry>
 
 void slamMapToMat(const nav_messages::FusionOccupancyGrid &map, cv::Mat &map_cv);
 

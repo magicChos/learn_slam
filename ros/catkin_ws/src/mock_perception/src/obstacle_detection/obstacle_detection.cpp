@@ -415,9 +415,6 @@ namespace ace
         {
             LogInfo("camera param init");
             m_camera->GetCalibration(m_C);
-            // Eigen::Matrix3f R;
-            // Eigen::Vector3f T;
-
             m_camera->GetExtrinsic(m_R, m_T);
 
             // rgb相机原点在depth相机坐标系下的坐标
