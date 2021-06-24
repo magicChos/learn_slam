@@ -16,10 +16,14 @@
 #include <pcl/filters/conditional_removal.h>
 
 using namespace std;
+
 const double PI = 3.1415926;
+// 定义地面法向量
+Eigen::Vector3d ground_norm;
+ground_norm << 0.0, 0.0, 1.0;
 
 template <typename PointT>
-void conditionFilter(typename pcl::PointCloud<PointT>::Ptr cloud_dst,  const typename pcl::PointCloud<PointT>::Ptr cloud_src, float z = -0.7)
+void conditionFilter(typename pcl::PointCloud<PointT>::Ptr cloud_dst, const typename pcl::PointCloud<PointT>::Ptr cloud_src, float z = -0.7)
 {
 	pcl::ConditionAnd<PointT> range_cond;
 	range_cond.addComparison(pcl::FieldComparison<pcl::PointXYZ>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZ>("z", pcl::ComparisonOps::GE, z)));
@@ -91,15 +95,7 @@ int main(int argc, char **argv)
 	}
 
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cut(new pcl::PointCloud<pcl::PointXYZRGB>);
-
-	// pcl::ConditionAnd<pcl::PointXYZRGB>::Ptr range_cond(new pcl::ConditionAnd<pcl::PointXYZRGB>);
-	// range_cond->addComparison(pcl::FieldComparison<pcl::PointXYZRGB>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZRGB>("z", pcl::ComparisonOps::GE, -0.7)));
-	// pcl::ConditionalRemoval<pcl::PointXYZRGB> condrem(range_cond);
-	// condrem.setInputCloud(cloud_result);
-	// condrem.setKeepOrganized(true);
-	// condrem.filter(*cloud_cut);
-
-	conditionFilter<pcl::PointXYZRGB>(cloud)
+	conditionFilter<pcl::PointXYZRGB>(cloud_cut, cloud_result);
 
 	pcl::io::savePCDFile("cloud_cut.pcd", *cloud_cut);
 
@@ -126,16 +122,12 @@ int main(int argc, char **argv)
 	seg.setMaxIterations(1000);
 
 	pcl::PCDWriter writer;
-	int i = 0, nr_points = (int)cloud_filtered_removaled->points.size();
+	int i = 0;
+	int nr_points = (int)cloud_filtered_removaled->points.size();
 
 	writer.write<pcl::PointXYZRGB>("result.pcd", *cloud_result);
 
-	// 定义地面法向量
-	Eigen::Vector3d ground_norm;
-	ground_norm << 0.0, 0.0, 1.0;
-
 	std::vector<Eigen::Vector4d> record_plane_coefs;
-
 	while (cloud_filtered_removaled->points.size() > 0.3 * nr_points)
 	{
 
@@ -161,11 +153,10 @@ int main(int argc, char **argv)
 		writer.write<pcl::PointXYZRGB>(ss.str(), *cloud_plane, false);
 
 		double sum_error = 0.0, max_error = 0.0;
-
 		for (int i = 0; i < cloud_plane->points.size(); i++)
 		{
-			double tmp_error = coefficients->values[0] * cloud_plane->points[i].x +
-							   coefficients->values[1] * cloud_plane->points[i].y + coefficients->values[2] * cloud_plane->points[i].z + coefficients->values[3];
+			double tmp_error = std::fabs(coefficients->values[0] * cloud_plane->points[i].x +
+										 coefficients->values[1] * cloud_plane->points[i].y + coefficients->values[2] * cloud_plane->points[i].z + coefficients->values[3]);
 			sum_error += tmp_error;
 			if (max_error < tmp_error)
 				max_error = tmp_error;
