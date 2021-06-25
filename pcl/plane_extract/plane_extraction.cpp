@@ -18,20 +18,18 @@
 using namespace std;
 
 const double PI = 3.1415926;
-// 定义地面法向量
-Eigen::Vector3d ground_norm;
-ground_norm << 0.0, 0.0, 1.0;
 
 template <typename PointT>
 void conditionFilter(typename pcl::PointCloud<PointT>::Ptr cloud_dst, const typename pcl::PointCloud<PointT>::Ptr cloud_src, float z = -0.7)
 {
-	pcl::ConditionAnd<PointT> range_cond;
-	range_cond.addComparison(pcl::FieldComparison<pcl::PointXYZ>::ConstPtr(new pcl::FieldComparison<pcl::PointXYZ>("z", pcl::ComparisonOps::GE, z)));
+	typename pcl::ConditionAnd<PointT>::Ptr range_cond(new pcl::ConditionAnd<PointT>()); //创建条件定义对象
+	//为条件定义对象添加比较算子: 使用大于0.0和小于0.8这两个条件用于建立滤波器。
+	range_cond->addComparison(typename pcl::FieldComparison<PointT>::ConstPtr(new pcl::FieldComparison<PointT>("z", pcl::ComparisonOps::GE, -0.7)));
 
 	pcl::ConditionalRemoval<PointT> condrem(range_cond);
 	condrem.setInputCloud(cloud_src);
 	condrem.setKeepOrganized(true);
-	condrem.filter(cloud_dst);
+	condrem.filter(*cloud_dst);
 }
 
 double computePoint2PlaneDist(const Eigen::Vector3d &p3d, const Eigen::Vector4d &plane_coef)
@@ -66,6 +64,9 @@ int recongnizeType(const Eigen::Vector3d &plane_norm, const Eigen::Vector3d &gro
 
 int main(int argc, char **argv)
 {
+	// 定义地面法向量
+	static Eigen::Vector3d ground_norm;
+	ground_norm << 0.0, 0.0, 1.0;
 
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
