@@ -11,3 +11,6 @@ open3d/python/perceptionMagic/publisher/__pycache__/
 open3d/python/perceptionMagic/utils/__pycache__/
 *.pcd
 *.ply
+*/devel/*
+*/build/*
+

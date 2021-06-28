@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 @filename    :cloud_outlier_removal.py
-@brief       :
+@brief       :点云滤波相关api
 @time        :2021/01/09 00:56:38
 @author      :hscoder
 @versions    :1.0
@@ -28,7 +28,9 @@ def display_inlier_outlier(cloud, ind):
     inlier_cloud.paint_uniform_color([0, 1, 0])
     o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
     
-    
+
+# 定义裁切区域，返回保留的索引
+# pcd: open3d.geometry.PointCloud    
 def custom_filter(pcd , x_range = [-1 , 1]  , y_range = [-1 , 1] , z_range = [1 , 1]):  
     xyz = np.asarray(pcd.points)
     x_points = xyz[:, 0]
@@ -54,10 +56,12 @@ if __name__ == "__main__":
     # o3d.visualization.draw_geometries([pcd])
     print("before voxel filter point cloud number: " , pcd)
     
+    # 体素降采样
     voxel_down_pcd = pcd.voxel_down_sample(voxel_size=0.02)
     # o3d.visualization.draw_geometries([voxel_down_pcd])
     print("after voxel filter point cloud number: " , voxel_down_pcd)
     
+    # 均匀降采样
     # uni_down_pcd = pcd.uniform_down_sample(every_k_points=5)
     # o3d.visualization.draw_geometries([uni_down_pcd])
     # print("after uniform_down_sample filter point cloud number: " , uni_down_pcd)
