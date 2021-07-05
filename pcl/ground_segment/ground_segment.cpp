@@ -8,8 +8,6 @@
 @usage       :
 ***********************************************************************************************/
 
-
-
 #include <iostream>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -17,6 +15,7 @@
 #include <pcl/segmentation/progressive_morphological_filter.h>
 #include <pcl/segmentation/approximate_progressive_morphological_filter.h>
 #include <memory>
+#include "plane_fitting.h"
 
 class GroundSegment
 {
@@ -94,6 +93,13 @@ private:
     std::vector<int> m_ground_indices;
 };
 
+double computePoint2PlaneDist(const Eigen::Vector3d &p3d, const Eigen::Vector4d &plane_coef)
+{
+    Eigen::Vector3d plane = plane_coef.block<3, 1>(0, 0);
+
+    return (std::fabs(p3d[0] * plane_coef[0] + p3d[1] * plane_coef[1] + p3d[2] * plane_coef[2] + plane_coef[3])) / plane.norm();
+}
+
 int main(int argc, char **argv)
 {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -111,26 +117,63 @@ int main(int argc, char **argv)
     std::cerr << "Ground cloud after filtering: " << std::endl;
     std::cerr << *cloud_filtered << std::endl;
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered_RGB(new pcl::PointCloud<pcl::PointXYZRGB>);
-    cloud_filtered_RGB->resize(cloud_filtered->size());
-    cloud_filtered_RGB->is_dense = false;
+    std::cout << " --------------------------------------------------" << std::endl;
+    std::cout << "plane coeff" << std::endl;
+    std::shared_ptr<FittingPlane> fitting_plane = std::make_shared<FittingPlane>();
+    fitting_plane->setInputCloud(cloud_filtered);
+    Eigen::VectorXf coeff = fitting_plane->fit(0.05);
 
-    for (size_t i = 0; i < cloud_filtered->points.size(); ++i)
+    std::cout << "coeff " << coeff[0] << " " << coeff[1] << " " << coeff[2] << " " << coeff[3] << std::endl;
+
+    Eigen::Vector4d coeff_d = coeff.cast<double>();
+    std::cout << "coeff_d: " << coeff_d << std::endl;
+
+    size_t point_number = cloud->points.size();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_render(new pcl::PointCloud<pcl::PointXYZRGB>);
+    cloud_render->resize(point_number);
+
+    for (size_t i = 0; i < point_number; ++i)
     {
-        cloud_filtered_RGB->points[i].x = cloud_filtered->points[i].x;
-        cloud_filtered_RGB->points[i].y = cloud_filtered->points[i].y;
-        cloud_filtered_RGB->points[i].z = cloud_filtered->points[i].z;
+        Eigen::Vector3d p3d;
+        p3d << cloud->points[i].x, cloud->points[i].y, cloud->points[i].z;
+        double dist = computePoint2PlaneDist(p3d, coeff_d);
 
-        cloud_filtered_RGB->points[i].r = 0;
-        cloud_filtered_RGB->points[i].g = 255;
-        cloud_filtered_RGB->points[i].b = 0;
+        cloud_render->points[i].x = cloud->points[i].x;
+        cloud_render->points[i].y = cloud->points[i].y;
+        cloud_render->points[i].z = cloud->points[i].z;
+        cloud_render->points[i].r = 255;
+        cloud_render->points[i].g = 255;
+        cloud_render->points[i].b = 255;
+        if (dist < 0.05)
+        {
+            cloud_render->points[i].r = 0;
+            cloud_render->points[i].g = 255;
+            cloud_render->points[i].b = 0;
+        }
     }
 
-    pcl::io::savePCDFileBinary("cloud_groud.pcd", *cloud_filtered_RGB);
-    ground_segment->setNegative(true);
-    ground_segment->extractCloud(cloud_filtered);
+    pcl::io::savePCDFileBinary("result.pcd", *cloud_render);
 
-    pcl::io::savePCDFileBinary("No_groud.pcd", *cloud_filtered);
+    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered_RGB(new pcl::PointCloud<pcl::PointXYZRGB>);
+    // cloud_filtered_RGB->resize(cloud_filtered->size());
+    // cloud_filtered_RGB->is_dense = false;
+
+    // for (size_t i = 0; i < cloud_filtered->points.size(); ++i)
+    // {
+    //     cloud_filtered_RGB->points[i].x = cloud_filtered->points[i].x;
+    //     cloud_filtered_RGB->points[i].y = cloud_filtered->points[i].y;
+    //     cloud_filtered_RGB->points[i].z = cloud_filtered->points[i].z;
+
+    //     cloud_filtered_RGB->points[i].r = 0;
+    //     cloud_filtered_RGB->points[i].g = 255;
+    //     cloud_filtered_RGB->points[i].b = 0;
+    // }
+
+    // pcl::io::savePCDFileBinary("cloud_groud.pcd", *cloud_filtered_RGB);
+    // ground_segment->setNegative(true);
+    // ground_segment->extractCloud(cloud_filtered);
+
+    // pcl::io::savePCDFileBinary("No_groud.pcd", *cloud_filtered);
 
     return (0);
 }

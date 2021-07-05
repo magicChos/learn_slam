@@ -7,5 +7,8 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable (ground_segment ground_segment.cpp)
+include_directories( . )
+set(SRC plane_fitting.cpp ground_segment.cpp)
+
+add_executable (ground_segment ${SRC})
 target_link_libraries (ground_segment ${PCL_LIBRARIES})

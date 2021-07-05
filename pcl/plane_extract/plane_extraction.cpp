@@ -62,6 +62,9 @@ int recongnizeType(const Eigen::Vector3d &plane_norm, const Eigen::Vector3d &gro
 	return 0;
 }
 
+
+
+
 int main(int argc, char **argv)
 {
 	// 定义地面法向量
