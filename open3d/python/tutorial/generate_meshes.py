@@ -97,7 +97,6 @@ def Posssion(pcd, vis_densities=False):
 
     densities = np.asarray(densities)
     vertices_to_remove = densities < np.quantile(densities, 0.05)
-    import pdb;pdb.set_trace()
     poisson_mesh.remove_vertices_by_mask(vertices_to_remove)
 
     bbox = pcd.get_axis_aligned_bounding_box()
@@ -109,7 +108,7 @@ def Posssion(pcd, vis_densities=False):
         visDensities(p_mesh_crop, densities)
         
         
-    filterMesh(p_mesh_crop)
+    # filterMesh(p_mesh_crop)
 
     # # LOD
     # lods_num = [triangles.shape[0] , int(triangles.shape[0] * 0.1) , int(triangles.shape[0] * 0.01)]
@@ -145,8 +144,9 @@ def parsePointcloudFormat(file_name):
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(point_cloud[:, :3])
         pcd.colors = o3d.utility.Vector3dVector(point_cloud[:, 3:6]/255)
-    elif file_name[-3:] == "ply":
-        pcd = o3d.io.read_point_cloud(file_name)
+    else:
+        pcd = o3d.io.read_point_cloud(file_name , remove_nan_points=True , remove_infinite_points=True , print_progress=True)
+
 
     return pcd
 
