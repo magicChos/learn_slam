@@ -16,10 +16,10 @@ from os.path import join, dirname, basename, splitext, isfile
 from warnings import warn
 import json
 
-bag_filename = "/home/han/Desktop/realsense-L515/20210625_120057.bag"
-config_file = "/home/han/data/project/learn_slam/open3d/python/tutorial/realsense.json"
-color_file = "/home/han/Desktop/realsense-L515/20210625_120108/color/00000.jpg"
-depth_file = "/home/han/Desktop/realsense-L515/20210625_120108/depth/00000.png"
+bag_filename = "/home/han/Desktop/data_0709/20210712_091914.bag"
+config_file = "/home/han/project/learn_slam/open3d/python/tutorial/realsense.json"
+color_file = "/home/han/Desktop/data_0709/20210712_091914/color/00000.jpg"
+depth_file = "/home/han/Desktop/data_0709/20210712_091914/depth/00000.png"
 
 
 def set_default_value(config, key, value):
