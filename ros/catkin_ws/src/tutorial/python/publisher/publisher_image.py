@@ -41,21 +41,46 @@ class ImagePublisher(object):
         self.publisher.publish(image_temp)
 
 
-if __name__ == '__main__':
+# 读取摄像头发布image
+def main():
     rospy.init_node("publish_image", anonymous=True)
-    image_lst = glob("/home/han/data/project/learn_slam/ros/catkin_ws/src/tutorial/python/subscriber" + "/*.jpg")
-    image_lst = sorted(image_lst , key=lambda item : int(os.path.basename(item)[:-4]))
-    
     img_publisher_obj = ImagePublisher("camera/color_image_raw")
-    
-    rate = rospy.Rate(10)
-    
-    for name in image_lst:
-        print(name)
-        img = cv2.imread(name)
-        print("img shape: " , img.shape)
-        img_publisher_obj.publish_image(img)
+    rate = rospy.Rate(20)
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened(): 
+        print("open camera failture")
+        return
+
+    while True:
+        ret , frame = cap.read()
+        if not ret:
+            break
+
+        img_publisher_obj.publish_image(frame)
         rate.sleep()
+
+
+    
+
+if __name__ == '__main__':
+    # one
+    # rospy.init_node("publish_image", anonymous=True)
+    # image_lst = glob("/home/han/data/project/learn_slam/ros/catkin_ws/src/tutorial/python/subscriber" + "/*.jpg")
+    # image_lst = sorted(image_lst , key=lambda item : int(os.path.basename(item)[:-4]))
+    
+    # img_publisher_obj = ImagePublisher("camera/color_image_raw")
+    
+    # rate = rospy.Rate(10)
+    
+    # for name in image_lst:
+    #     print(name)
+    #     img = cv2.imread(name)
+    #     print("img shape: " , img.shape)
+    #     img_publisher_obj.publish_image(img)
+    #     rate.sleep()
+
+
+    main()
         
         
         
