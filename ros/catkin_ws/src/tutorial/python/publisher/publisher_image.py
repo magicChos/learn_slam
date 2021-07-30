@@ -55,7 +55,7 @@ def main():
         ret , frame = cap.read()
         if not ret:
             break
-
+        frame = cv2.cvtColor(frame , cv2.COLOR_BGR2RGB)
         img_publisher_obj.publish_image(frame)
         rate.sleep()
 
