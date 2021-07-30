@@ -22,6 +22,9 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+FIND_PACKAGE( OpenCV 3.2.0)
+INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} )
+
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -141,6 +144,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(polygonpublisher_node app_node/polygonpublisher.cpp)
+add_executable(publish_image_node app_node/publish_image.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -156,6 +160,8 @@ add_executable(polygonpublisher_node app_node/polygonpublisher.cpp)
 target_link_libraries(polygonpublisher_node
   ${catkin_LIBRARIES}
 )
+
+target_link_libraries(publish_image_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 #############
 ## Install ##
