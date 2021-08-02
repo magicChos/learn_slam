@@ -14,10 +14,12 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   roscpp
   rospy
+  rosbag
   std_msgs
   tf
   visualization_msgs
   geometry_msgs
+  message_filters
 )
 
 ## System dependencies are found with CMake's conventions
@@ -130,6 +132,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+include_directories( app_node )
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/tutorial.cpp
@@ -145,6 +149,8 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(polygonpublisher_node app_node/polygonpublisher.cpp)
 add_executable(publish_image_node app_node/publish_image.cpp)
+add_executable(time_sync_node app_node/time_nchronizer.cpp)
+add_executable(msg_sync_node app_node/main.cpp app_node/msg_syn.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -162,6 +168,10 @@ target_link_libraries(polygonpublisher_node
 )
 
 target_link_libraries(publish_image_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
+target_link_libraries(time_sync_node ${catkin_LIBRARIES})
+
+target_link_libraries(msg_sync_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 #############
 ## Install ##
