@@ -25,12 +25,10 @@ import time
 class CloudSubscriber(object):
     def __init__(self, topic_name, buffer_size=1):
         self.cloudSub = rospy.Subscriber(
-            topic_name, PointCloud, self.msg_callback, queue_size=buffer_size)
+            topic_name, PointCloud2, self.msg_callback, queue_size=buffer_size)
 
     def msg_callback(self, data):
         try:
-            import pdb
-            pdb.set_trace()
             print(data.header.stamp.to_sec())
         except BaseException as e:
             print(e)
@@ -38,5 +36,5 @@ class CloudSubscriber(object):
 
 if __name__ == '__main__':
     rospy.init_node("subscirbeCloud", anonymous=True)
-    cloud_subscriber_obj = CloudSubscriber("/pico_camera/point_cloud")
+    cloud_subscriber_obj = CloudSubscriber("/livox/lidar")
     rospy.spin()
