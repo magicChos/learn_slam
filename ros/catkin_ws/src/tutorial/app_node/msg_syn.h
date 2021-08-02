@@ -10,6 +10,7 @@
 
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/JointState.h>
 
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
@@ -18,14 +19,13 @@
 
 namespace climbing_robot
 {
-
     class MsgSynchronizer
     {
     public:
         MsgSynchronizer(ros::NodeHandle node);
         ~MsgSynchronizer(){};
 
-        void callback(const sensor_msgs::PointCloud::ConstPtr &ori_pointcloud, const sensor_msgs::Image::ConstPtr &ori_image);
+        void callback(const sensor_msgs::PointCloud2::ConstPtr &ori_pointcloud, const sensor_msgs::Image::ConstPtr &ori_image);
 
         inline void CloseBag()
         {
