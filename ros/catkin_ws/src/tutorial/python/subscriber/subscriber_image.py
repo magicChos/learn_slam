@@ -17,6 +17,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge , CvBridgeError
 from multiprocessing import JoinableQueue
 import multiprocessing
+import time
 
 class ImageSubscriber(object):
     def __init__(self  , topic_name , buffer_size = 1 , model = None):
@@ -35,11 +36,8 @@ class ImageSubscriber(object):
             if self.model is not None:
                 image_raw, detections = self.model.predict_cv(image_raw)
             
-            save_name = str(self.count) + ".jpg"
-            # cv2.imwrite(save_name , image_raw)
-            cv2.imshow("image" , image_raw)
-            cv2.waitKey(25)
-            self.count += 1
+            save_name = str(time.time()) + ".jpg"
+            cv2.imwrite(save_name , image_raw)
             
         except CvBridgeError as e:
             print(e)
