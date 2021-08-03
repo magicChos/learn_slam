@@ -45,7 +45,7 @@ class ImagePublisher(object):
 def main():
     rospy.init_node("publish_image", anonymous=True)
     img_publisher_obj = ImagePublisher("camera/color_image_raw")
-    rate = rospy.Rate(20)
+    rate = rospy.Rate(30)
     cap = cv2.VideoCapture(0)
     if not cap.isOpened(): 
         print("open camera failture")
