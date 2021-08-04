@@ -13,7 +13,6 @@ int main(int argc, char **argv)
     image_transport::ImageTransport it(nh);
     image_transport::Publisher pub = it.advertise("camera/image", 1);
 
-
     cv::VideoCapture cap(0);
     if (!cap.isOpened())
     {
@@ -36,10 +35,9 @@ int main(int argc, char **argv)
     header.frame_id = "camera/color_image_raw";
     header.stamp = ros::Time::now();
 
-    
     cv::Mat frame;
-    ros::Rate loop_rate(25);
-    while (nh.ok())
+    ros::Rate loop_rate(30);
+    while (ros::ok())
     {
         cap >> frame;
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(header, "bgr8", frame).toImageMsg();
