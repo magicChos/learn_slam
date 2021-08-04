@@ -24,7 +24,6 @@ int main(int argc, char **argv)
     int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
 
     sensor_msgs::Image img_msg;
-    img_msg.header.frame_id = "camera/color_image_raw";
     img_msg.width = width;
     img_msg.height = height;
     img_msg.is_bigendian = false;
@@ -37,8 +36,6 @@ int main(int argc, char **argv)
     header.frame_id = "camera/color_image_raw";
     header.stamp = ros::Time::now();
 
-
-    cv::Mat image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
     
     cv::Mat frame;
     ros::Rate loop_rate(25);
