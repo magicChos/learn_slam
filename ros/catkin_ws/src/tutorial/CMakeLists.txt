@@ -20,6 +20,8 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   geometry_msgs
   message_filters
+  pcl_conversions
+  pcl_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -27,6 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
 FIND_PACKAGE( OpenCV 3.2.0)
 INCLUDE_DIRECTORIES( ${OpenCV_INCLUDE_DIRS} )
 
+find_package(PCL REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -130,6 +133,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 include_directories( app_node )
@@ -171,7 +175,7 @@ target_link_libraries(publish_image_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 target_link_libraries(time_sync_node ${catkin_LIBRARIES})
 
-target_link_libraries(msg_sync_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(msg_sync_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
 
 #############
 ## Install ##
