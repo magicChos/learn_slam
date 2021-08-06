@@ -156,6 +156,7 @@ add_executable(publish_image_node app_node/publish_image.cpp)
 add_executable(time_sync_node app_node/time_nchronizer.cpp)
 add_executable(msg_sync_node app_node/main.cpp app_node/msg_syn.cpp)
 add_executable(mrege_cloud_node app_node/merge_cloud_node.cpp)
+add_executable(lasesr_scan_node app_node/lasesr_scan_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -178,7 +179,7 @@ target_link_libraries(time_sync_node ${catkin_LIBRARIES})
 
 target_link_libraries(msg_sync_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
 target_link_libraries(mrege_cloud_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
-
+target_link_libraries(lasesr_scan_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
 #############
 ## Install ##
 #############
