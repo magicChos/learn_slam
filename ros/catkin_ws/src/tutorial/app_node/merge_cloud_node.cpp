@@ -25,9 +25,13 @@ void loadPointcloudFromROSBag(const string &bag_path)
         return;
     }
 
-    vector<string> types;
-    types.push_back(string("sensor_msgs/PointCloud2")); // message title
-    rosbag::View view(bag, rosbag::TypeQuery(types));
+    // vector<string> types;
+    // types.push_back(string("sensor_msgs/PointCloud2")); // message title
+    // rosbag::View view(bag, rosbag::TypeQuery(types));
+
+    vector<string> topics;
+    topics.push_back(string("/Syn/lidar"));
+    rosbag::View view(bag, rosbag::TopicQuery(topics));
 
     for (const rosbag::MessageInstance &m : view)
     {
@@ -44,7 +48,7 @@ int main(int argc, char **argv)
 
     ROS_INFO("\033[1;32m---->\033[0m merge_cloud node Started. ");
 
-    std::string input_bag_path = "/home/han/2021-08-05-17-12-12.bag";
+    std::string input_bag_path = "/home/han/8-9/2021-08-09-15-47-07.bag";
     loadPointcloudFromROSBag(input_bag_path);
     uint64_t num = 0;
     pcl::PointCloud<PointType>::Ptr result_cloud(new pcl::PointCloud<PointType>);
@@ -55,7 +59,10 @@ int main(int argc, char **argv)
         {
             std::cout << "num: " << num << std::endl;
             pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>);
-            pcl::fromROSMsg(lidar_datas[num], *cloud);
+
+            // pcl_conversions::toPCL(lidar_datas[num].header ,cloud->header);
+            
+            pcl::fromROSMsg<pcl::PointXYZRGB>(lidar_datas[num], *cloud);
             std::cout << "cloud size: " << cloud->points.size() << std::endl;
 
             *result_cloud += *cloud;
