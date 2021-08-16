@@ -61,9 +61,11 @@ int main(int argc, char **argv)
             pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>);
 
             // pcl_conversions::toPCL(lidar_datas[num].header ,cloud->header);
-            
+
             pcl::fromROSMsg<pcl::PointXYZRGB>(lidar_datas[num], *cloud);
             std::cout << "cloud size: " << cloud->points.size() << std::endl;
+            std::cout << "RGB: " << cloud->points[0].r << " , " << cloud->points[0].g << " , " << cloud->points[0].b << std::endl;
+            printf("%d , %d , %d\n" , cloud->points[0].r , cloud->points[0].g, cloud->points[0].b);
 
             *result_cloud += *cloud;
             std::cout << "result cloud size: " << result_cloud->points.size() << std::endl;
