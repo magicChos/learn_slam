@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     pcl::PointIndicesPtr ground(new pcl::PointIndices);
 
     pcl::PCDReader reader;
-    reader.read<pcl::PointXYZ>("1.pcd", *cloud);
+    reader.read<pcl::PointXYZ>("/home/han/Desktop/9-9/0903_output2.pcd", *cloud);
 
     std::shared_ptr<GroundSegment> ground_segment = std::make_shared<GroundSegment>();
     ground_segment->setInputCloud(cloud);
