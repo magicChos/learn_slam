@@ -1,20 +1,50 @@
-#include <actionlib_test/DoDishesAction.h>
+
+
 #include <actionlib/client/simple_action_client.h>
+#include "actionlib_test/DoDishesAction.h"
 
 typedef actionlib::SimpleActionClient<actionlib_test::DoDishesAction> Client;
+
+// 当action完成后会调用该回调函数一次
+void doneCb(const actionlib::SimpleClientGoalState &state,
+            const actionlib_test::DoDishesResultConstPtr &result)
+{
+    ROS_INFO("Yay! The dishes are now clean");
+    ros::shutdown();
+}
+
+// 当action激活后会调用该回调函数一次
+void activeCb()
+{
+    ROS_INFO("Goal just went active");
+}
+
+// 收到feedback后调用该回调函数
+void feedbackCb(const actionlib_test::DoDishesFeedbackConstPtr &feedback)
+{
+    ROS_INFO(" percent_complete : %f ", feedback->percent_complete);
+}
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "do_dishes_client");
 
-    Client client("do_dishes", true); // true -> don't need ros::spin()
-    client.waitForServer();           // Waits for the ActionServer to connect to this client
+    // 定义一个客户端
+    Client client("do_dishes", true);
+
+    // 等待服务器端
+    ROS_INFO("Waiting for action server to start.");
+    client.waitForServer();
+    ROS_INFO("Action server started, sending goal.");
+
+    // 创建一个action的goal
     actionlib_test::DoDishesGoal goal;
-    // Fill in goal here
-    client.sendGoal(goal);                    // Sends a goal to the ActionServer
-    client.waitForResult(ros::Duration(5.0)); // Blocks until this goal finishes
-    if (client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-        printf("Yay! The dishes are now clean\n");
-    printf("Current State: %s\n", client.getState().toString().c_str());
+    goal.dishwasher_id = 1;
+
+    // 发送action的goal给服务器端，并且设置回调函数
+    client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
+
+    ros::spin();
+
     return 0;
 }
