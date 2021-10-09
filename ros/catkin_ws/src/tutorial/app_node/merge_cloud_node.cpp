@@ -8,7 +8,9 @@
 #include <vector>
 
 using namespace std;
-typedef pcl::PointXYZRGB PointType;
+// typedef pcl::PointXYZRGB PointType;
+typedef pcl::PointXYZI PointType;
+
 vector<sensor_msgs::PointCloud2> lidar_datas;
 
 void loadPointcloudFromROSBag(const string &bag_path)
@@ -30,7 +32,7 @@ void loadPointcloudFromROSBag(const string &bag_path)
     // rosbag::View view(bag, rosbag::TypeQuery(types));
 
     vector<string> topics;
-    topics.push_back(string("/Syn/lidar"));
+    topics.push_back(string("/livox/lidar"));
     rosbag::View view(bag, rosbag::TopicQuery(topics));
 
     for (const rosbag::MessageInstance &m : view)
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
 
     ROS_INFO("\033[1;32m---->\033[0m merge_cloud node Started. ");
 
-    std::string input_bag_path = "/home/han/8-9/2021-08-09-15-47-07.bag";
+    std::string input_bag_path = "/home/han/Desktop/9-28-calib/data/lidar/20.bag";
     loadPointcloudFromROSBag(input_bag_path);
     uint64_t num = 0;
     pcl::PointCloud<PointType>::Ptr result_cloud(new pcl::PointCloud<PointType>);
@@ -62,10 +64,10 @@ int main(int argc, char **argv)
 
             // pcl_conversions::toPCL(lidar_datas[num].header ,cloud->header);
 
-            pcl::fromROSMsg<pcl::PointXYZRGB>(lidar_datas[num], *cloud);
+            pcl::fromROSMsg<PointType>(lidar_datas[num], *cloud);
             std::cout << "cloud size: " << cloud->points.size() << std::endl;
-            std::cout << "RGB: " << cloud->points[0].r << " , " << cloud->points[0].g << " , " << cloud->points[0].b << std::endl;
-            printf("%d , %d , %d\n" , cloud->points[0].r , cloud->points[0].g, cloud->points[0].b);
+            // std::cout << "RGB: " << cloud->points[0].r << " , " << cloud->points[0].g << " , " << cloud->points[0].b << std::endl;
+            // printf("%d , %d , %d\n" , cloud->points[0].r , cloud->points[0].g, cloud->points[0].b);
 
             *result_cloud += *cloud;
             std::cout << "result cloud size: " << result_cloud->points.size() << std::endl;
@@ -78,7 +80,7 @@ int main(int argc, char **argv)
     }
 
     pcl::PCDWriter writer;
-    writer.write("/home/han/project/learn_slam/ros/catkin_ws/src/tutorial/build/merge_cloud.pcd", *result_cloud);
+    writer.write("/home/han/Desktop/9-28-calib/data/pcdFiles/20.pcd", *result_cloud);
 
     return 0;
 }
