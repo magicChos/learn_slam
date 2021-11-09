@@ -14,6 +14,34 @@ inline T DotProduct(const T x[3], const T y[3])
     return (x[0] * y[0] + x[1] * y[1] + x[2] * y[2]);
 }
 
+Eigen::Matrix4f rotx(float angle)
+{
+    Eigen::Matrix4f b1;
+    b1 << 1, 0, 0, 0,
+        0, cos(angle), -sin(angle), 0,
+        0, sin(angle), cos(angle), 0,
+        0, 0, 0, 1;
+    return b1;
+}
+Eigen::Matrix4f roty(float angle)
+{
+    Eigen::Matrix4f b1;
+    b1 << cos(angle), 0, sin(angle), 0,
+        0, 1, 0, 0,
+        -sin(angle), 0, cos(angle), 0,
+        0, 0, 0, 1;
+    return b1;
+}
+Eigen::Matrix4f rotz(float angle)
+{
+    Eigen::Matrix4f b1;
+    b1 << cos(angle), -sin(angle), 0, 0,
+        sin(angle), cos(angle), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1;
+    return b1;
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -37,18 +65,18 @@ int main(int argc, char *argv[])
     std::cout << "inverse_rotation: " << inverse_rotation << std::endl;
 
     double *angle_axis_inverse = inverse_rotation.data();
-    double theta2_inverse = DotProduct(inverse_rotation.data() , inverse_rotation.data());
+    double theta2_inverse = DotProduct(inverse_rotation.data(), inverse_rotation.data());
     double theta_inverse = std::sqrt(theta2_inverse);
     std::cout << "theta_inverse: " << theta2_inverse << std::endl;
 
     double angle_axis_norm_inverse[3];
-    for(int i = 0 ; i < 3 ; ++i)
+    for (int i = 0; i < 3; ++i)
     {
-        angle_axis_norm_inverse[i] = angle_axis_inverse[i]/theta_inverse;
+        angle_axis_norm_inverse[i] = angle_axis_inverse[i] / theta_inverse;
     }
-    Eigen::AngleAxisd rotaion_vector_inverse(theta_inverse , Eigen::Vector3d(angle_axis_norm_inverse));
+    Eigen::AngleAxisd rotaion_vector_inverse(theta_inverse, Eigen::Vector3d(angle_axis_norm_inverse));
     std::cout << rotaion_vector_inverse.matrix() << std::endl;
-    
+
     // Eigen::Matrix3d rotation_matrix = Eigen::Matrix3d::Identity();
     // std::cout << "rotation_matrix: \n" << rotation_matrix << std::endl;
 
@@ -104,9 +132,11 @@ int main(int argc, char *argv[])
     // rotation_matrix = q.matrix();
     // // rotation_matrix = q.toRotationMatrix()
 
-    // // 旋转矩阵转四元数
-    // q = Eigen::Quaterniond(rotation_matrix);
-    // std::cout << "quaternion = \n" << q.coeffs() << std::endl;
+    // 旋转矩阵转四元数
+    Eigen::Matrix3d m = Eigen::Matrix3d::Identity(3, 3);
+    Eigen::Quaterniond q_ = Eigen::Quaterniond(m);
+    std::cout << "quaternion = \n"
+              << q_.coeffs() << std::endl;
 
     // // 旋转矩阵转旋转向量
     // Eigen::AngleAxisd r_vector(rotation_matrix);
@@ -117,5 +147,15 @@ int main(int argc, char *argv[])
     // v_rotated = q * v;
     // std::cout << "(1 , 0 ,0) after rotation = \n" << v_rotated.transpose() << std::endl;
 
+    
+    double theta_ = 60 * 3.1415926/180;
+    Eigen::Matrix4f rot_x = rotx(theta_);
+    std::cout << "rot_x: " << rot_x << std::endl;
+    Eigen::Matrix4f rot_y = roty(theta_);
+    std::cout << "rot_y: " << rot_y << std::endl;
+    Eigen::Matrix4f rot_z = rotz(theta_);
+    std::cout << "rot_z: " << rot_z << std::endl;
+    
+    
     return 0;
 }
