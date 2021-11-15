@@ -15,9 +15,12 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(plane_extraction plane_extraction.cpp)
+add_executable(test experiment_for_perception.cpp)
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(plane_extraction PUBLIC  pthread OpenMP::OpenMP_CXX ${PCL_LIBRARIES})
+    target_link_libraries(test PUBLIC  pthread OpenMP::OpenMP_CXX ${PCL_LIBRARIES})
 else()
     target_link_libraries (plane_extraction ${PCL_LIBRARIES})
+    target_link_libraries(test PUBLIC  pthread OpenMP::OpenMP_CXX ${PCL_LIBRARIES})
 endif()
