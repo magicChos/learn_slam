@@ -14,6 +14,7 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/filters/conditional_removal.h>
+#include <pcl/filters/passthrough.h>
 
 #include <future>
 #include <chrono>
@@ -24,7 +25,10 @@
 using namespace std;
 
 const double PI = 3.1415926;
-
+typedef pcl::PointXYZRGB PointT;
+typedef pcl::PointCloud<PointT> PointCloud;
+typedef pcl::PointCloud<PointT>::Ptr PointCloudPtr;
+typedef pcl::PointCloud<PointT>::ConstPtr PointCloudConstPtr;
 class Timer
 {
 	using Clock = std::chrono::high_resolution_clock;
@@ -129,6 +133,17 @@ double computeCloudResolution(const pcl::PointCloud<PointType>::ConstPtr &cloud)
 	return res;
 }
 
+PointCloudPtr filerPassThrough(PointCloudConstPtr cloud_in, const std::string &axis, const float min_val = -0.6, const float max_val = 2.4)
+{
+    PointCloudPtr res(new PointCloud);
+    pcl::PassThrough<PointT> pass;
+    pass.setInputCloud(cloud_in);
+    pass.setFilterFieldName(axis);
+    pass.setFilterLimits(min_val, max_val);
+    pass.filter(*res);
+    return res;
+}
+
 int main(int argc, char **argv)
 {
 	// 定义地面法向量
@@ -143,159 +158,169 @@ int main(int argc, char **argv)
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_plane(new pcl::PointCloud<pcl::PointXYZRGB>);
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZRGB>);
 
-	pcl::io::loadPCDFile("/home/han/Desktop/9-9/0903_output2.pcd", *cloud);
+	pcl::io::loadPCDFile("/home/han/Desktop/map_merge.pcd", *cloud);
 	size_t point_number = cloud->points.size();
-	std::cout << "@test point number: " << point_number << std::endl;
-	std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
-	timer_obj->start();
-	std::cout << "#### 计算点云密度 ####" << std::endl;
-	double resolution = computeCloudResolution(cloud);
-	std::cout << "resolution: " << resolution << std::endl;
-	timer_obj->end();
-	double cost_time = timer_obj->cost_time();
-	std::cout << "计算点云密度 cost time: " << cost_time << std::endl;
+	std::cout << "@test before filter point number: " << point_number << std::endl;
 
-	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_result(new pcl::PointCloud<pcl::PointXYZRGB>);
-	cloud_result->width = point_number;
-	cloud_result->height = 1;
-	cloud_result->is_dense = false;
-	cloud_result->resize(point_number);
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic)
-#endif
-	for (int i = 0; i < point_number; ++i)
-	{
-		cloud_result->points[i].x = cloud->points[i].x;
-		cloud_result->points[i].y = cloud->points[i].y;
-		cloud_result->points[i].z = cloud->points[i].z;
+	cloud = filerPassThrough(cloud , "z" , -0.8 , 1.8);
 
-		cloud_result->points[i].r = 255;
-		cloud_result->points[i].g = 255;
-		cloud_result->points[i].b = 255;
-	}
+	point_number = cloud->points.size();
+	std::cout << "@test after filter point number: " << point_number << std::endl;
 
-	// pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cut(new pcl::PointCloud<pcl::PointXYZRGB>);
-	// conditionFilter<pcl::PointXYZRGB>(cloud_cut, cloud_result);
 
-	// pcl::io::savePCDFile("cloud_cut.pcd", *cloud_cut);
+	pcl::io::savePCDFile("filter.pcd", *cloud);
 
-	pcl::VoxelGrid<pcl::PointXYZRGB> vg;
-	// // vg.setInputCloud(cloud_cut);
-	vg.setInputCloud(cloud_result);
-	vg.setLeafSize(0.01f, 0.01f, 0.01f);
-	vg.filter(*cloud_filtered);
 
-	std::cout << "下采样之后点云数量：" << cloud_filtered->points.size() << std::endl;
+// 	std::shared_ptr<Timer> timer_obj = std::make_shared<Timer>();
+// 	timer_obj->start();
+// 	std::cout << "#### 计算点云密度 ####" << std::endl;
+// 	double resolution = computeCloudResolution(cloud);
+// 	std::cout << "resolution: " << resolution << std::endl;
+// 	timer_obj->end();
+// 	double cost_time = timer_obj->cost_time();
+// 	std::cout << "计算点云密度 cost time: " << cost_time << std::endl;
 
-	std::cout << "#### 下采样之后點雲密度 ####" << std::endl;
-	resolution = computeCloudResolution(cloud_filtered);
-	std::cout << "resolution: " << resolution << std::endl;
+// 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_result(new pcl::PointCloud<pcl::PointXYZRGB>);
+// 	cloud_result->width = point_number;
+// 	cloud_result->height = 1;
+// 	cloud_result->is_dense = false;
+// 	cloud_result->resize(point_number);
+// #if defined(_OPENMP)
+// #pragma omp parallel for schedule(dynamic)
+// #endif
+// 	for (int i = 0; i < point_number; ++i)
+// 	{
+// 		cloud_result->points[i].x = cloud->points[i].x;
+// 		cloud_result->points[i].y = cloud->points[i].y;
+// 		cloud_result->points[i].z = cloud->points[i].z;
 
-	pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
-	sor.setInputCloud(cloud_filtered);
-	sor.setMeanK(50);
-	sor.setStddevMulThresh(1.0);
-	sor.filter(*cloud_filtered_removaled);
+// 		cloud_result->points[i].r = 255;
+// 		cloud_result->points[i].g = 255;
+// 		cloud_result->points[i].b = 255;
+// 	}
 
-	std::cout << "#### 滤波之后剩余点数量： " << cloud_filtered_removaled->points.size() << std::endl;
+// 	// pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cut(new pcl::PointCloud<pcl::PointXYZRGB>);
+// 	// conditionFilter<pcl::PointXYZRGB>(cloud_cut, cloud_result);
 
-	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-	pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+// 	// pcl::io::savePCDFile("cloud_cut.pcd", *cloud_cut);
 
-	pcl::SACSegmentation<pcl::PointXYZRGB> seg;
-	seg.setOptimizeCoefficients(true);
-	seg.setModelType(pcl::SACMODEL_PLANE);
-	seg.setMethodType(pcl::SAC_RANSAC);
-	seg.setDistanceThreshold(0.02);
-	seg.setMaxIterations(1000);
+// 	pcl::VoxelGrid<pcl::PointXYZRGB> vg;
+// 	// // vg.setInputCloud(cloud_cut);
+// 	vg.setInputCloud(cloud_result);
+// 	vg.setLeafSize(0.01f, 0.01f, 0.01f);
+// 	vg.filter(*cloud_filtered);
 
-	pcl::PCDWriter writer;
-	int i = 0;
-	int nr_points = (int)cloud_filtered_removaled->points.size();
+// 	std::cout << "下采样之后点云数量：" << cloud_filtered->points.size() << std::endl;
 
-	std::vector<Eigen::Vector4d> record_plane_coefs;
-	while (cloud_filtered_removaled->points.size() > 0.3 * nr_points)
-	{
+// 	std::cout << "#### 下采样之后點雲密度 ####" << std::endl;
+// 	resolution = computeCloudResolution(cloud_filtered);
+// 	std::cout << "resolution: " << resolution << std::endl;
 
-		seg.setInputCloud(cloud_filtered_removaled);
-		seg.segment(*inliers, *coefficients);
+// 	pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+// 	sor.setInputCloud(cloud_filtered);
+// 	sor.setMeanK(50);
+// 	sor.setStddevMulThresh(1.0);
+// 	sor.filter(*cloud_filtered_removaled);
 
-		pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-		extract.setInputCloud(cloud_filtered_removaled);
-		extract.setIndices(inliers);
-		// 如果设为true,可以提取指定index之外的点云
-		extract.setNegative(false);
-		extract.filter(*cloud_plane);
+// 	std::cout << "#### 滤波之后剩余点数量： " << cloud_filtered_removaled->points.size() << std::endl;
 
-		if (cloud_plane->points.size() < 10000)
-			break;
+// 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+// 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 
-		Eigen::Vector4d coef_plane;
-		coef_plane << coefficients->values[0], coefficients->values[1], coefficients->values[2], coefficients->values[3];
-		record_plane_coefs.emplace_back(coef_plane);
+// 	pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+// 	seg.setOptimizeCoefficients(true);
+// 	seg.setModelType(pcl::SACMODEL_PLANE);
+// 	seg.setMethodType(pcl::SAC_RANSAC);
+// 	seg.setDistanceThreshold(0.02);
+// 	seg.setMaxIterations(1000);
 
-		std::stringstream ss;
-		ss << "full_room_plane_" << i << ".pcd";
-		writer.write<pcl::PointXYZRGB>(ss.str(), *cloud_plane, false);
+// 	pcl::PCDWriter writer;
+// 	int i = 0;
+// 	int nr_points = (int)cloud_filtered_removaled->points.size();
 
-		double sum_error = 0.0, max_error = 0.0;
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic)
-#endif
-		for (int i = 0; i < cloud_plane->points.size(); i++)
-		{
-			double tmp_error = std::fabs(coefficients->values[0] * cloud_plane->points[i].x +
-										 coefficients->values[1] * cloud_plane->points[i].y + coefficients->values[2] * cloud_plane->points[i].z + coefficients->values[3]);
-			sum_error += tmp_error;
-			if (max_error < tmp_error)
-				max_error = tmp_error;
-		}
+// 	std::vector<Eigen::Vector4d> record_plane_coefs;
+// 	while (cloud_filtered_removaled->points.size() > 0.3 * nr_points)
+// 	{
 
-		cout << "Plane " << i << endl;
-		cout << "coefficient: " << coefficients->values[0] << " "
-			 << coefficients->values[1] << " "
-			 << coefficients->values[2] << " "
-			 << coefficients->values[3] << endl;
-		cout << "max_error: " << max_error << endl;
-		cout << "mean_error: " << sum_error / cloud_plane->points.size() << endl;
+// 		seg.setInputCloud(cloud_filtered_removaled);
+// 		seg.segment(*inliers, *coefficients);
 
-		extract.setNegative(true);
-		extract.filter(*cloud_f);
-		cloud_filtered_removaled.swap(cloud_f);
-		i++;
-	}
+// 		pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+// 		extract.setInputCloud(cloud_filtered_removaled);
+// 		extract.setIndices(inliers);
+// 		// 如果设为true,可以提取指定index之外的点云
+// 		extract.setNegative(false);
+// 		extract.filter(*cloud_plane);
 
-	std::cout << "------------------------------------" << std::endl;
-	for (auto &coef : record_plane_coefs)
-	{
-		int label = recongnizeType(coef.block<3, 1>(0, 0), ground_norm);
-		std::cout << "label: " << label << std::endl;
+// 		if (cloud_plane->points.size() < 10000)
+// 			break;
 
-		for (int i = 0; i < point_number; ++i)
-		{
-			Eigen::Vector3d p3d;
-			p3d << cloud_result->points[i].x, cloud_result->points[i].y, cloud_result->points[i].z;
-			double dist = computePoint2PlaneDist(p3d, coef);
+// 		Eigen::Vector4d coef_plane;
+// 		coef_plane << coefficients->values[0], coefficients->values[1], coefficients->values[2], coefficients->values[3];
+// 		record_plane_coefs.emplace_back(coef_plane);
 
-			if (dist < 0.05)
-			{
-				if (label == 1)
-				{
-					cloud_result->points[i].r = 0;
-					cloud_result->points[i].g = 0;
-					cloud_result->points[i].b = 255;
-				}
-				else if (label == 2)
-				{
-					cloud_result->points[i].r = 0;
-					cloud_result->points[i].g = 255;
-					cloud_result->points[i].b = 0;
-				}
-			}
-		}
-	}
+// 		std::stringstream ss;
+// 		ss << "full_room_plane_" << i << ".pcd";
+// 		writer.write<pcl::PointXYZRGB>(ss.str(), *cloud_plane, false);
 
-	pcl::io::savePCDFile("cloud_result.pcd", *cloud_result);
+// 		double sum_error = 0.0, max_error = 0.0;
+// #if defined(_OPENMP)
+// #pragma omp parallel for schedule(dynamic)
+// #endif
+// 		for (int i = 0; i < cloud_plane->points.size(); i++)
+// 		{
+// 			double tmp_error = std::fabs(coefficients->values[0] * cloud_plane->points[i].x +
+// 										 coefficients->values[1] * cloud_plane->points[i].y + coefficients->values[2] * cloud_plane->points[i].z + coefficients->values[3]);
+// 			sum_error += tmp_error;
+// 			if (max_error < tmp_error)
+// 				max_error = tmp_error;
+// 		}
+
+// 		cout << "Plane " << i << endl;
+// 		cout << "coefficient: " << coefficients->values[0] << " "
+// 			 << coefficients->values[1] << " "
+// 			 << coefficients->values[2] << " "
+// 			 << coefficients->values[3] << endl;
+// 		cout << "max_error: " << max_error << endl;
+// 		cout << "mean_error: " << sum_error / cloud_plane->points.size() << endl;
+
+// 		extract.setNegative(true);
+// 		extract.filter(*cloud_f);
+// 		cloud_filtered_removaled.swap(cloud_f);
+// 		i++;
+// 	}
+
+// 	std::cout << "------------------------------------" << std::endl;
+// 	for (auto &coef : record_plane_coefs)
+// 	{
+// 		int label = recongnizeType(coef.block<3, 1>(0, 0), ground_norm);
+// 		std::cout << "label: " << label << std::endl;
+
+// 		for (int i = 0; i < point_number; ++i)
+// 		{
+// 			Eigen::Vector3d p3d;
+// 			p3d << cloud_result->points[i].x, cloud_result->points[i].y, cloud_result->points[i].z;
+// 			double dist = computePoint2PlaneDist(p3d, coef);
+
+// 			if (dist < 0.05)
+// 			{
+// 				if (label == 1)
+// 				{
+// 					cloud_result->points[i].r = 0;
+// 					cloud_result->points[i].g = 0;
+// 					cloud_result->points[i].b = 255;
+// 				}
+// 				else if (label == 2)
+// 				{
+// 					cloud_result->points[i].r = 0;
+// 					cloud_result->points[i].g = 255;
+// 					cloud_result->points[i].b = 0;
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	pcl::io::savePCDFile("cloud_result.pcd", *cloud_result);
 
 	return 0;
 }
