@@ -76,7 +76,7 @@
 #include <fstream>
 #include <iostream>
 using namespace std;
-void main()
+int main()
 {
     double *gpx = new double[3];
     double *gpy = new double[3];
@@ -95,4 +95,6 @@ void main()
     filein.close();
     for (int j = 0; j < 3; j++)
         cout << ipx[j] << "\t" << ipy[j] << "\t" << gpx[j] << "\t" << gpy[j] << "\t" << gpz[j] << endl;
+
+    return 0;
 }
