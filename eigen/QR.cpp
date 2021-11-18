@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
     A << 1, 2, 4, 5;
     Eigen::Vector2d b(3, 4);
     Eigen::Vector2d C = A.colPivHouseholderQr().solve(b);
-
     std::cout << C << std::endl;
     return 0;
 }
