@@ -1,6 +1,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <iostream>
+#include <Eigen/Eigen>
 
 using namespace Eigen;
 
@@ -45,5 +46,21 @@ int main(int argc, char **argv)
     Eigen::Vector3d g0(0, 0, 9.81);
     MatrixXd res = TangentBasis(g0);
     std::cout << "res = " << res << std::endl;
+
+    Eigen::Isometry3f tran_isometry = Eigen::Isometry3f::Identity();
+    std::cout << "trans_isometry = " << tran_isometry.matrix() << std::endl;
+
+    Eigen::AngleAxisf init_rotation(0, Eigen::Vector3f::UnitZ());
+    Eigen::Translation3f init_translation(0, 0, 0);
+    Eigen::Matrix4f init_guess = (init_translation * init_rotation).matrix();
+
+    std::cout << init_guess << std::endl;
+
+    Eigen::Matrix<double, 3, 4> P0;
+    P0.leftCols<3>() = Eigen::Matrix3d::Identity();
+    P0.rightCols<1>() = Eigen::Vector3d::Zero();
+
+    std::cout << "P0 = " << P0 << std::endl;
+
     return 1;
 }
