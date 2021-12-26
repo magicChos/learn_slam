@@ -43,10 +43,10 @@ include_directories( ${GTSAM_INCLUDE_DIR} )
 #     ${Sophus_LIBRARIES}
 # )
 
-add_executable( pose2slamExample Pose2SLAMExample.cpp )
+add_executable( pose2slamExample exsample/Pose2SLAMExample.cpp )
 target_link_libraries( pose2slamExample
     gtsam
 )
 
-add_executable(poseslamExpressExsample Pose2SLAMExpressionExample.cpp)
+add_executable(poseslamExpressExsample exsample/Pose2SLAMExpressionExample.cpp)
 target_link_libraries(poseslamExpressExsample gtsam)

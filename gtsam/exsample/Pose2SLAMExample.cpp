@@ -7,14 +7,14 @@
 
 /**
  * A simple 2D pose-graph SLAM
- * The robot moves from x1 to x5, with odometry information between each pair. 
+ * The robot moves from x1 to x5, with odometry information between each pair.
  * the robot moves 5 each step, and makes 90 deg right turns at x3 - x5
  * At x5, there is a *loop closure* between x2 is avaible
  * The graph strcuture is shown:
- * 
+ *
  *  p-x1 - x2 - x3
  *         |    |
- *         x5 - x4 
+ *         x5 - x4
  */
 
 // In planar cases we use Pose2 variables (x, y, theta) to represent the robot poses in SE(2)
@@ -41,7 +41,7 @@
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 
 // Once the optimized values have been calculated, we can also calculate the
-// (appoximated / linearized) marginal covariance of desired variables
+// (appoximated / linearized) marginal covariance of desired variables(所需变量的边缘协方差)
 #include <gtsam/nonlinear/Marginals.h>
 
 using namespace std;
@@ -50,75 +50,75 @@ using namespace gtsam;
 int main(int argc, char **argv)
 {
 
-  // Create a factor graph container
-  NonlinearFactorGraph graph;
+    // Create a factor graph container
+    NonlinearFactorGraph graph;
 
-  // Add a prior on the first pose, setting it to the origin
-  // The prior is needed to fix/align the whole trajectory at world frame
-  // A prior factor consists of a mean value and a noise model (covariance matrix)
-  noiseModel::Diagonal::shared_ptr priorModel = noiseModel::Diagonal::Sigmas(Vector3(1.0, 1.0, 0.1));
-  graph.add(PriorFactor<Pose2>(Symbol('x', 1), Pose2(0, 0, 0), priorModel));
+    // Add a prior on the first pose, setting it to the origin
+    // The prior is needed to fix/align the whole trajectory at world frame
+    // A prior factor consists of a mean value and a noise model (covariance matrix)
+    noiseModel::Diagonal::shared_ptr priorModel = noiseModel::Diagonal::Sigmas(Vector3(1.0, 1.0, 0.1));
+    graph.add(PriorFactor<Pose2>(Symbol('x', 1), Pose2(0, 0, 0), priorModel));
 
-  // odometry measurement noise model (covariance matrix)
-  noiseModel::Diagonal::shared_ptr odomModel = noiseModel::Diagonal::Sigmas(Vector3(0.5, 0.5, 0.1));
+    // odometry measurement noise model (covariance matrix)
+    noiseModel::Diagonal::shared_ptr odomModel = noiseModel::Diagonal::Sigmas(Vector3(0.5, 0.5, 0.1));
 
-  // Add odometry factors
-  // Create odometry (Between) factors between consecutive poses
-  // robot makes 90 deg right turns at x3 - x5
-  graph.add(BetweenFactor<Pose2>(Symbol('x', 1), Symbol('x', 2), Pose2(5, 0, 0), odomModel));
-  graph.add(BetweenFactor<Pose2>(Symbol('x', 2), Symbol('x', 3), Pose2(5, 0, -M_PI_2), odomModel));
-  graph.add(BetweenFactor<Pose2>(Symbol('x', 3), Symbol('x', 4), Pose2(5, 0, -M_PI_2), odomModel));
-  graph.add(BetweenFactor<Pose2>(Symbol('x', 4), Symbol('x', 5), Pose2(5, 0, -M_PI_2), odomModel));
+    // Add odometry factors
+    // Create odometry (Between) factors between consecutive poses
+    // robot makes 90 deg right turns at x3 - x5
+    graph.add(BetweenFactor<Pose2>(Symbol('x', 1), Symbol('x', 2), Pose2(5, 0, 0), odomModel));
+    graph.add(BetweenFactor<Pose2>(Symbol('x', 2), Symbol('x', 3), Pose2(5, 0, -M_PI_2), odomModel));
+    graph.add(BetweenFactor<Pose2>(Symbol('x', 3), Symbol('x', 4), Pose2(5, 0, -M_PI_2), odomModel));
+    graph.add(BetweenFactor<Pose2>(Symbol('x', 4), Symbol('x', 5), Pose2(5, 0, -M_PI_2), odomModel));
 
-  // loop closure measurement noise model
-  noiseModel::Diagonal::shared_ptr loopModel = noiseModel::Diagonal::Sigmas(Vector3(0.5, 0.5, 0.1));
+    // loop closure measurement noise model
+    noiseModel::Diagonal::shared_ptr loopModel = noiseModel::Diagonal::Sigmas(Vector3(0.5, 0.5, 0.1));
 
-  // Add the loop closure constraint
-  graph.add(BetweenFactor<Pose2>(Symbol('x', 5), Symbol('x', 2), Pose2(5, 0, -M_PI_2), loopModel));
+    // Add the loop closure constraint
+    graph.add(BetweenFactor<Pose2>(Symbol('x', 5), Symbol('x', 2), Pose2(5, 0, -M_PI_2), loopModel));
 
-  // print factor graph
-  graph.print("\nFactor Graph:\n");
+    // print factor graph
+    graph.print("\nFactor Graph:\n");
 
-  // initial varible values for the optimization
-  // add random noise from ground truth values
-  Values initials;
-  initials.insert(Symbol('x', 1), Pose2(0.2, -0.3, 0.2));
-  initials.insert(Symbol('x', 2), Pose2(5.1, 0.3, -0.1));
-  initials.insert(Symbol('x', 3), Pose2(9.9, -0.1, -M_PI_2 - 0.2));
-  initials.insert(Symbol('x', 4), Pose2(10.2, -5.0, -M_PI + 0.1));
-  initials.insert(Symbol('x', 5), Pose2(5.1, -5.1, M_PI_2 - 0.1));
+    // initial varible values for the optimization
+    // add random noise from ground truth values
+    Values initials;
+    initials.insert(Symbol('x', 1), Pose2(0.2, -0.3, 0.2));
+    initials.insert(Symbol('x', 2), Pose2(5.1, 0.3, -0.1));
+    initials.insert(Symbol('x', 3), Pose2(9.9, -0.1, -M_PI_2 - 0.2));
+    initials.insert(Symbol('x', 4), Pose2(10.2, -5.0, -M_PI + 0.1));
+    initials.insert(Symbol('x', 5), Pose2(5.1, -5.1, M_PI_2 - 0.1));
 
-  // print initial values
-  initials.print("\nInitial Values:\n");
+    // print initial values
+    initials.print("\nInitial Values:\n");
 
-  // Use Gauss-Newton method optimizes the initial values
-  GaussNewtonParams parameters;
+    // Use Gauss-Newton method optimizes the initial values
+    GaussNewtonParams parameters;
 
-  // print per iteration
-  parameters.setVerbosity("ERROR");
+    // print per iteration
+    parameters.setVerbosity("ERROR");
 
-  // optimize!
-  GaussNewtonOptimizer optimizer(graph, initials, parameters);
-  Values results = optimizer.optimize();
+    // optimize!
+    GaussNewtonOptimizer optimizer(graph, initials, parameters);
+    Values results = optimizer.optimize();
 
-  // print final values
-  results.print("Final Result:\n");
+    // print final values
+    results.print("Final Result:\n");
 
-  // Calculate marginal covariances for all poses
-  // 计算所有位姿边际协防差
-  Marginals marginals(graph, results);
+    // Calculate marginal covariances for all poses
+    // 计算所有位姿边际协防差
+    Marginals marginals(graph, results);
 
-  // print marginal covariances
-  cout << "x1 covariance:\n"
-       << marginals.marginalCovariance(Symbol('x', 1)) << endl;
-  cout << "x2 covariance:\n"
-       << marginals.marginalCovariance(Symbol('x', 2)) << endl;
-  cout << "x3 covariance:\n"
-       << marginals.marginalCovariance(Symbol('x', 3)) << endl;
-  cout << "x4 covariance:\n"
-       << marginals.marginalCovariance(Symbol('x', 4)) << endl;
-  cout << "x5 covariance:\n"
-       << marginals.marginalCovariance(Symbol('x', 5)) << endl;
+    // print marginal covariances
+    cout << "x1 covariance:\n"
+         << marginals.marginalCovariance(Symbol('x', 1)) << endl;
+    cout << "x2 covariance:\n"
+         << marginals.marginalCovariance(Symbol('x', 2)) << endl;
+    cout << "x3 covariance:\n"
+         << marginals.marginalCovariance(Symbol('x', 3)) << endl;
+    cout << "x4 covariance:\n"
+         << marginals.marginalCovariance(Symbol('x', 4)) << endl;
+    cout << "x5 covariance:\n"
+         << marginals.marginalCovariance(Symbol('x', 5)) << endl;
 
-  return 0;
+    return 0;
 }
