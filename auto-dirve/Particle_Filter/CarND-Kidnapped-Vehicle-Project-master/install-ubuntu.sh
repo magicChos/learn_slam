@@ -1,11 +1,11 @@
-sudo apt-get install libuv1-dev libssl-dev
+sudo apt-get install libuv1-dev libssl-dev -y
 git clone https://github.com/uWebSockets/uWebSockets 
 cd uWebSockets
 git checkout e94b6e1
 mkdir build
 cd build
-cmake ..
-make 
+sudo cmake ..
+sudo make 
 sudo make install
 cd ..
 cd ..

@@ -1,7 +1,7 @@
 #include <Eigen/Core>
+#include <Eigen/Eigen>
 #include <Eigen/Geometry>
 #include <iostream>
-#include <Eigen/Eigen>
 
 using namespace Eigen;
 
@@ -36,31 +36,36 @@ int main(int argc, char **argv)
     n << 0, 0, 1;
 
     std::cout << "向量积： " << m.dot(n) << std::endl;
-    std::cout << "叉积: " << m.cross(n).norm() << std::endl;
 
-    Eigen::Vector3d mn;
-    mn << 1, 2, 3;
-    mn.normalize();
-    std::cout << mn << std::endl;
+    double cos_theta = m.dot(n) / (m.norm() * n.norm());
+    std::cout << "夹角 = " << std::acos(cos_theta) << std::endl;
 
-    Eigen::Vector3d g0(0, 0, 9.81);
-    MatrixXd res = TangentBasis(g0);
-    std::cout << "res = " << res << std::endl;
+    Eigen::Vector3d cross_pt = m.cross(n);
+    std::cout << "叉积: " << m.cross(n) << std::endl;
 
-    Eigen::Isometry3f tran_isometry = Eigen::Isometry3f::Identity();
-    std::cout << "trans_isometry = " << tran_isometry.matrix() << std::endl;
+    // Eigen::Vector3d mn;
+    // mn << 1, 2, 3;
+    // mn.normalize();
+    // std::cout << mn << std::endl;
 
-    Eigen::AngleAxisf init_rotation(0, Eigen::Vector3f::UnitZ());
-    Eigen::Translation3f init_translation(0, 0, 0);
-    Eigen::Matrix4f init_guess = (init_translation * init_rotation).matrix();
+    // Eigen::Vector3d g0(0, 0, 9.81);
+    // MatrixXd        res = TangentBasis(g0);
+    // std::cout << "res = " << res << std::endl;
 
-    std::cout << init_guess << std::endl;
+    // Eigen::Isometry3f tran_isometry = Eigen::Isometry3f::Identity();
+    // std::cout << "trans_isometry = " << tran_isometry.matrix() << std::endl;
 
-    Eigen::Matrix<double, 3, 4> P0;
-    P0.leftCols<3>() = Eigen::Matrix3d::Identity();
-    P0.rightCols<1>() = Eigen::Vector3d::Zero();
+    // Eigen::AngleAxisf    init_rotation(0, Eigen::Vector3f::UnitZ());
+    // Eigen::Translation3f init_translation(0, 0, 0);
+    // Eigen::Matrix4f      init_guess = (init_translation * init_rotation).matrix();
 
-    std::cout << "P0 = " << P0 << std::endl;
+    // std::cout << init_guess << std::endl;
+
+    // Eigen::Matrix<double, 3, 4> P0;
+    // P0.leftCols<3>()  = Eigen::Matrix3d::Identity();
+    // P0.rightCols<1>() = Eigen::Vector3d::Zero();
+
+    // std::cout << "P0 = " << P0 << std::endl;
 
     return 1;
 }

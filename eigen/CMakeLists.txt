@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 PROJECT(test)
+set(CMAKE_CXX_STANDARD 11)
 
 find_package(Eigen3)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
